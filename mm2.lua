@@ -37,6 +37,8 @@ local state = {
 }
 
 local flyConnections = {}
+local flying = false
+local bodyVelocity, bodyGyro
 
 local function getPlayerRole(plr)
     if not plr or not plr.Character then return "INNOCENT" end
@@ -54,6 +56,121 @@ local function isPlayerAlive(plr)
     local humanoid = plr.Character:FindFirstChild("Humanoid")
     if not humanoid then return false end
     return humanoid.Health > 0
+end
+
+local function startFly()
+    local char = player.Character
+    if not char then return end
+    local root = char:FindFirstChild("HumanoidRootPart")
+    local humanoid = char:FindFirstChild("Humanoid")
+    if not root or not humanoid then return end
+
+    flying = true
+    state.noClip = true
+
+    humanoid.PlatformStand = true
+    humanoid.AutoRotate = false
+
+    bodyVelocity = Instance.new("BodyVelocity")
+    bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
+    bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+    bodyVelocity.Parent = root
+
+    bodyGyro = Instance.new("BodyGyro")
+    bodyGyro.D = 500
+    bodyGyro.P = 5000
+    bodyGyro.MaxTorque = Vector3.new(0, 4000, 0)
+    bodyGyro.CFrame = root.CFrame
+    bodyGyro.Parent = root
+
+    local moveForward = false
+    local moveBackward = false
+    local moveLeft = false
+    local moveRight = false
+    local moveUp = false
+    local moveDown = false
+
+    local function onInputBegan(input, gameProcessed)
+        if gameProcessed then return end
+        if input.KeyCode == Enum.KeyCode.W then moveForward = true
+        elseif input.KeyCode == Enum.KeyCode.S then moveBackward = true
+        elseif input.KeyCode == Enum.KeyCode.A then moveLeft = true
+        elseif input.KeyCode == Enum.KeyCode.D then moveRight = true
+        elseif input.KeyCode == Enum.KeyCode.Space then moveUp = true
+        elseif input.KeyCode == Enum.KeyCode.LeftShift then moveDown = true
+        end
+    end
+
+    local function onInputEnded(input, gameProcessed)
+        if gameProcessed then return end
+        if input.KeyCode == Enum.KeyCode.W then moveForward = false
+        elseif input.KeyCode == Enum.KeyCode.S then moveBackward = false
+        elseif input.KeyCode == Enum.KeyCode.A then moveLeft = false
+        elseif input.KeyCode == Enum.KeyCode.D then moveRight = false
+        elseif input.KeyCode == Enum.KeyCode.Space then moveUp = false
+        elseif input.KeyCode == Enum.KeyCode.LeftShift then moveDown = false
+        end
+    end
+
+    local function updateFly()
+        if not flying or not root or not root.Parent then
+            stopFly()
+            return
+        end
+
+        local direction = Vector3.new(0, 0, 0)
+        if moveForward then direction = direction + root.CFrame.LookVector end
+        if moveBackward then direction = direction - root.CFrame.LookVector end
+        if moveLeft then direction = direction - root.CFrame.RightVector end
+        if moveRight then direction = direction + root.CFrame.RightVector end
+        if moveUp then direction = direction + Vector3.new(0, 1, 0) end
+        if moveDown then direction = direction - Vector3.new(0, 1, 0) end
+
+        if direction.Magnitude > 0 then
+            direction = direction.Unit * SETTINGS.flySpeed
+        end
+        bodyVelocity.Velocity = direction
+        bodyGyro.CFrame = root.CFrame
+
+        for _, part in ipairs(char:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
+        end
+    end
+
+    local inputBeganConnection = userInputService.InputBegan:Connect(onInputBegan)
+    local inputEndedConnection = userInputService.InputEnded:Connect(onInputEnded)
+    local heartbeatConnection = runService.Heartbeat:Connect(updateFly)
+
+    flyConnections = {inputBeganConnection, inputEndedConnection, heartbeatConnection}
+end
+
+local function stopFly()
+    flying = false
+    state.noClip = false
+
+    for _, conn in ipairs(flyConnections) do
+        conn:Disconnect()
+    end
+    flyConnections = {}
+
+    if bodyVelocity then bodyVelocity:Destroy() end
+    if bodyGyro then bodyGyro:Destroy() end
+
+    local char = player.Character
+    if char then
+        local humanoid = char:FindFirstChild("Humanoid")
+        if humanoid then
+            humanoid.PlatformStand = false
+            humanoid.AutoRotate = true
+        end
+        for _, part in ipairs(char:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = true
+            end
+        end
+    end
 end
 
 local function createGUI()
@@ -105,6 +222,7 @@ local function createGUI()
     closeBtn.Parent = mainFrame
     closeBtn.ZIndex = 3
     closeBtn.MouseButton1Click:Connect(function()
+        stopFly()
         screenGui:Destroy()
     end)
 
@@ -312,9 +430,9 @@ local function createGUI()
             
             if key == "flyMode" then
                 if state.flyMode then
-                    enableFly()
+                    startFly()
                 else
-                    disableFly()
+                    stopFly()
                 end
             end
         end)
@@ -349,6 +467,7 @@ local function createGUI()
         killBtn.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
         wait(0.1)
         killBtn.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
+        stopFly()
         game:Shutdown()
     end)
 
@@ -364,110 +483,6 @@ local function createGUI()
     killLabel.ZIndex = 3
 
     return screenGui, mainFrame
-end
-
-local function enableFly()
-    local char = player.Character
-    if not char then return end
-    local root = char:FindFirstChild("HumanoidRootPart")
-    local humanoid = char:FindFirstChild("Humanoid")
-    if not root or not humanoid then return end
-    
-    for _, conn in ipairs(flyConnections) do
-        conn:Disconnect()
-    end
-    flyConnections = {}
-    
-    local bodyGyro = Instance.new("BodyGyro")
-    bodyGyro.Parent = root
-    bodyGyro.D = 500
-    bodyGyro.P = 5000
-    bodyGyro.MaxTorque = Vector3.new(0, 4000, 0)
-    bodyGyro.CFrame = root.CFrame
-    
-    local bodyVelocity = Instance.new("BodyVelocity")
-    bodyVelocity.Parent = root
-    bodyVelocity.Velocity = Vector3.new(0, 0, 0)
-    bodyVelocity.MaxForce = Vector3.new(4000, 4000, 4000)
-    
-    local flySpeed = SETTINGS.flySpeed
-    
-    local moveForward = false
-    local moveBackward = false
-    local moveLeft = false
-    local moveRight = false
-    local moveUp = false
-    local moveDown = false
-    
-    local function updateFly()
-        local direction = Vector3.new(0, 0, 0)
-        if moveForward then direction = direction + root.CFrame.LookVector end
-        if moveBackward then direction = direction - root.CFrame.LookVector end
-        if moveLeft then direction = direction - root.CFrame.RightVector end
-        if moveRight then direction = direction + root.CFrame.RightVector end
-        if moveUp then direction = direction + Vector3.new(0, 1, 0) end
-        if moveDown then direction = direction - Vector3.new(0, 1, 0) end
-        
-        if direction.Magnitude > 0 then
-            direction = direction.Unit * flySpeed
-        end
-        bodyVelocity.Velocity = direction
-        bodyGyro.CFrame = root.CFrame
-    end
-    
-    local function onInputBegan(input, gameProcessed)
-        if gameProcessed then return end
-        if input.KeyCode == Enum.KeyCode.W then moveForward = true
-        elseif input.KeyCode == Enum.KeyCode.S then moveBackward = true
-        elseif input.KeyCode == Enum.KeyCode.A then moveLeft = true
-        elseif input.KeyCode == Enum.KeyCode.D then moveRight = true
-        elseif input.KeyCode == Enum.KeyCode.Space then moveUp = true
-        elseif input.KeyCode == Enum.KeyCode.LeftShift then moveDown = true
-        end
-        updateFly()
-    end
-    
-    local function onInputEnded(input, gameProcessed)
-        if gameProcessed then return end
-        if input.KeyCode == Enum.KeyCode.W then moveForward = false
-        elseif input.KeyCode == Enum.KeyCode.S then moveBackward = false
-        elseif input.KeyCode == Enum.KeyCode.A then moveLeft = false
-        elseif input.KeyCode == Enum.KeyCode.D then moveRight = false
-        elseif input.KeyCode == Enum.KeyCode.Space then moveUp = false
-        elseif input.KeyCode == Enum.KeyCode.LeftShift then moveDown = false
-        end
-        updateFly()
-    end
-    
-    table.insert(flyConnections, userInputService.InputBegan:Connect(onInputBegan))
-    table.insert(flyConnections, userInputService.InputEnded:Connect(onInputEnded))
-    table.insert(flyConnections, runService.Heartbeat:Connect(updateFly))
-    
-    humanoid.PlatformStand = true
-    humanoid.AutoRotate = false
-end
-
-local function disableFly()
-    for _, conn in ipairs(flyConnections) do
-        conn:Disconnect()
-    end
-    flyConnections = {}
-    
-    local char = player.Character
-    if char then
-        local root = char:FindFirstChild("HumanoidRootPart")
-        local humanoid = char:FindFirstChild("Humanoid")
-        if root then
-            local bodyGyro = root:FindFirstChild("BodyGyro")
-            local bodyVelocity = root:FindFirstChild("BodyVelocity")
-            if bodyGyro then bodyGyro:Destroy() end
-            if bodyVelocity then bodyVelocity:Destroy() end
-        end
-        if humanoid then
-            humanoid.PlatformStand = false
-            humanoid.AutoRotate = true
-        end
-    end
 end
 
 local gui, mainFrame = createGUI()
@@ -720,7 +735,7 @@ runService.Heartbeat:Connect(function()
         if state.autoCollect then autoCollect() end
         if state.aimbotMode then aimbot() end
         if state.espMode then esp() end
-        if state.noClip then noClip() end
+        if not state.flyMode then noClip() end
         speedHack()
         jumpPower()
         if state.silentAim then silentAim() end
@@ -735,3 +750,6 @@ runService.Heartbeat:Connect(function()
         end
     end)
 end)
+
+print("[EBANAT HUB V2] УСПЕШНО ЗАГРУЖЕН!")
+print("[EBANAT HUB V2] ESP: Убийца 🔴, Шериф 🔵, Невиновный 🟢, Мёртвый ⚪")
