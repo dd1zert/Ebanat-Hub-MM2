@@ -26,6 +26,7 @@ local state = {
     autoServerHop = false,
     noClip = false,
     speedHack = false,
+    jumpPower = false,
     silentAim = false,
     antiBan = false,
     godMode = false,
@@ -196,7 +197,7 @@ local function createGUI()
     scrollFrame.Position = UDim2.new(0, 10, 0, 110)
     scrollFrame.BackgroundTransparency = 1
     scrollFrame.BorderSizePixel = 0
-    scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 600)
+    scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 650)
     scrollFrame.ScrollBarThickness = 6
     scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(0, 200, 255)
     scrollFrame.ScrollBarImageTransparency = 0.5
@@ -214,6 +215,7 @@ local function createGUI()
         {cat = 2, name = "🔄 Auto-Server-Hop", key = "autoServerHop"},
         {cat = 2, name = "🧱 No-Clip", key = "noClip"},
         {cat = 2, name = "🏃 Speed Hack", key = "speedHack"},
+        {cat = 2, name = "🦘 Jump Power", key = "jumpPower"},
         {cat = 3, name = "👁️ ESP (Цветной)", key = "espMode"},
         {cat = 3, name = "🛡️ Anti-Ban", key = "antiBan"},
         {cat = 4, name = "🎯 Aimbot", key = "aimbotMode"},
@@ -411,9 +413,22 @@ local function speedHack()
             if humanoid then
                 if state.speedHack then
                     humanoid.WalkSpeed = SETTINGS.walkSpeed
-                    humanoid.JumpPower = SETTINGS.jumpPower
                 else
                     humanoid.WalkSpeed = 16
+                end
+            end
+        end
+    end)
+end
+
+local function jumpPower()
+    pcall(function()
+        if player.Character then
+            local humanoid = player.Character:FindFirstChild("Humanoid")
+            if humanoid then
+                if state.jumpPower then
+                    humanoid.JumpPower = SETTINGS.jumpPower
+                else
                     humanoid.JumpPower = 50
                 end
             end
@@ -573,6 +588,7 @@ runService.Heartbeat:Connect(function()
         if state.espMode then esp() end
         if state.noClip then noClip() end
         speedHack()
+        jumpPower()
         if state.silentAim then silentAim() end
         if state.godMode then godMode() end
         if state.antiBan then antiBan() end
@@ -585,6 +601,3 @@ runService.Heartbeat:Connect(function()
         end
     end)
 end)
-
-print("[EBANAT HUB V2] УСПЕШНО ЗАГРУЖЕН!")
-print("[EBANAT HUB V2] ESP: Убийца 🔴, Шериф 🔵, Невиновный 🟢, Мёртвый ⚪")
