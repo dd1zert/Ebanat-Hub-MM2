@@ -34,16 +34,71 @@ local state = {
 }
 
 local function getPlayerRole(plr)
-    if not plr or not plr.Character then return "INNOCENT" end
+    if not plr then return "INNOCENT" end
     
-    local tool = plr.Character:FindFirstChildOfClass("Tool")
-    if tool then
-        local toolName = tool.Name:lower()
-        if toolName:find("knife") or toolName:find("нож") then
+    -- Проверка через объекты в модели персонажа (САМЫЙ НАДЁЖНЫЙ СПОСОБ)
+    if plr.Character then
+        -- Ищем объекты с ролями
+        for _, child in ipairs(plr.Character:GetChildren()) do
+            local name = child.Name
+            if name == "Murderer" or name == "Убийца" then
+                return "MURDERER"
+            elseif name == "Sheriff" or name == "Шериф" then
+                return "SHERIFF"
+            elseif name == "Innocent" or name == "Невиновный" then
+                return "INNOCENT"
+            end
+        end
+    end
+    
+    -- Проверка через теги в Humanoid
+    if plr.Character then
+        local humanoid = plr.Character:FindFirstChild("Humanoid")
+        if humanoid then
+            local roleTag = humanoid:FindFirstChild("RoleTag")
+            if roleTag then
+                local roleValue = roleTag.Value
+                if roleValue == "Murderer" then
+                    return "MURDERER"
+                elseif roleValue == "Sheriff" then
+                    return "SHERIFF"
+                elseif roleValue == "Innocent" then
+                    return "INNOCENT"
+                end
+            end
+        end
+    end
+    
+    -- Проверка через PlayerGui
+    local playerGui = plr:FindFirstChild("PlayerGui")
+    if playerGui then
+        if playerGui:FindFirstChild("MurdererGUI") or playerGui:FindFirstChild("KillGUI") or playerGui:FindFirstChild("KnifeGUI") then
             return "MURDERER"
-        elseif toolName:find("gun") or toolName:find("пистолет") or toolName:find("revolver") then
+        end
+        if playerGui:FindFirstChild("SheriffGUI") or playerGui:FindFirstChild("GunGUI") or playerGui:FindFirstChild("RevolverGUI") then
             return "SHERIFF"
         end
+    end
+    
+    -- Проверка через оружие (как запасной вариант)
+    if plr.Character then
+        local tool = plr.Character:FindFirstChildOfClass("Tool")
+        if tool then
+            local toolName = tool.Name:lower()
+            if toolName:find("knife") or toolName:find("нож") then
+                return "MURDERER"
+            elseif toolName:find("gun") or toolName:find("пистолет") or toolName:find("revolver") then
+                return "SHERIFF"
+            end
+        end
+    end
+    
+    -- Проверка через имя игрока (в некоторых версиях MM2)
+    local name = plr.Name:lower()
+    if name:find("murderer") or name:find("убийца") then
+        return "MURDERER"
+    elseif name:find("sheriff") or name:find("шериф") then
+        return "SHERIFF"
     end
     
     return "INNOCENT"
@@ -216,7 +271,7 @@ local function createGUI()
         {cat = 2, name = "🧱 No-Clip", key = "noClip"},
         {cat = 2, name = "🏃 Speed Hack", key = "speedHack"},
         {cat = 2, name = "🦘 Jump Power", key = "jumpPower"},
-        {cat = 3, name = "👁️ ESP (По оружию)", key = "espMode"},
+        {cat = 3, name = "👁️ ESP (Роли)", key = "espMode"},
         {cat = 3, name = "🛡️ Anti-Ban", key = "antiBan"},
         {cat = 4, name = "🎯 Aimbot", key = "aimbotMode"},
         {cat = 4, name = "🤫 Silent Aim", key = "silentAim"},
@@ -603,4 +658,4 @@ runService.Heartbeat:Connect(function()
 end)
 
 print("[EBANAT HUB V2] УСПЕШНО ЗАГРУЖЕН!")
-print("[EBANAT HUB V2] ESP работает по оружию: нож = убийца, пистолет = шериф")
+print("[EBANAT HUB V2] ESP определяет роли по объектам в модели персонажа!")
