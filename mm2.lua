@@ -123,9 +123,6 @@ local function createGUI()
                 child.Visible = not state.isMinimized
             end
         end
-        if not state.isMinimized then
-            updateButtons()
-        end
     end)
 
     local dragButton = Instance.new("TextButton")
@@ -175,6 +172,7 @@ local function createGUI()
 
     local currentCategory = 1
     local categoryButtons = {}
+    local contentFrames = {}
 
     for i, cat in ipairs(categories) do
         local tabBtn = Instance.new("TextButton")
@@ -194,36 +192,40 @@ local function createGUI()
         tabCorner.CornerRadius = UDim.new(0, 8)
         tabCorner.Parent = tabBtn
 
+        local contentFrame = Instance.new("ScrollingFrame")
+        contentFrame.Size = UDim2.new(0, 430, 0, 135)
+        contentFrame.Position = UDim2.new(0, 15, 0, 95)
+        contentFrame.BackgroundTransparency = 1
+        contentFrame.BorderSizePixel = 0
+        contentFrame.CanvasSize = UDim2.new(0, 0, 0, 600)
+        contentFrame.ScrollBarThickness = 4
+        contentFrame.ScrollBarImageColor3 = Color3.fromRGB(150, 80, 255)
+        contentFrame.ScrollBarImageTransparency = 0.4
+        contentFrame.Parent = mainFrame
+        contentFrame.ZIndex = 2
+        contentFrame.Visible = (i == currentCategory)
+        contentFrames[i] = contentFrame
+
+        local gridLayout = Instance.new("UIGridLayout")
+        gridLayout.CellSize = UDim2.new(0, 130, 0, 42)
+        gridLayout.CellPadding = UDim2.new(0, 8, 0, 8)
+        gridLayout.FillDirection = Enum.FillDirection.Horizontal
+        gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        gridLayout.Parent = contentFrame
+
         tabBtn.MouseButton1Click:Connect(function()
             currentCategory = i
             for j, btn in ipairs(categoryButtons) do
                 btn.BackgroundColor3 = (j == i) and categories[j].color or Color3.fromRGB(35, 30, 55)
                 btn.BackgroundTransparency = (j == i) and 0.2 or 0.4
             end
-            updateButtons()
+            for j, frame in ipairs(contentFrames) do
+                frame.Visible = (j == i)
+            end
         end)
 
         categoryButtons[i] = tabBtn
     end
-
-    local scrollFrame = Instance.new("ScrollingFrame")
-    scrollFrame.Size = UDim2.new(0, 430, 0, 135)
-    scrollFrame.Position = UDim2.new(0, 15, 0, 95)
-    scrollFrame.BackgroundTransparency = 1
-    scrollFrame.BorderSizePixel = 0
-    scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 600)
-    scrollFrame.ScrollBarThickness = 4
-    scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(150, 80, 255)
-    scrollFrame.ScrollBarImageTransparency = 0.4
-    scrollFrame.Parent = mainFrame
-    scrollFrame.ZIndex = 2
-
-    local gridLayout = Instance.new("UIGridLayout")
-    gridLayout.CellSize = UDim2.new(0, 130, 0, 42)
-    gridLayout.CellPadding = UDim2.new(0, 8, 0, 8)
-    gridLayout.FillDirection = Enum.FillDirection.Horizontal
-    gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    gridLayout.Parent = scrollFrame
 
     local allButtons = {
         {cat = 1, name = "💰 Auto-Farm", key = "farmMode"},
@@ -239,15 +241,8 @@ local function createGUI()
         {cat = 3, name = "🛡️ Anti-Ban", key = "antiBan"},
     }
 
-    local function updateButtons()
-        for _, child in ipairs(scrollFrame:GetChildren()) do
-            if child:IsA("TextButton") and child:GetAttribute("Category") then
-                child.Visible = (child:GetAttribute("Category") == currentCategory)
-            end
-        end
-    end
-
     for _, btnData in ipairs(allButtons) do
+        local contentFrame = contentFrames[btnData.cat]
         local btn = Instance.new("TextButton")
         btn.Size = UDim2.new(0, 130, 0, 42)
         btn.BackgroundColor3 = Color3.fromRGB(30, 25, 50)
@@ -257,8 +252,7 @@ local function createGUI()
         btn.Font = Enum.Font.GothamSemibold
         btn.BorderSizePixel = 0
         btn.BackgroundTransparency = 0.25
-        btn.Parent = scrollFrame
-        btn:SetAttribute("Category", btnData.cat)
+        btn.Parent = contentFrame
         btn.ZIndex = 3
 
         local btnCorner = Instance.new("UICorner")
@@ -355,8 +349,6 @@ local function createGUI()
     killLabel.Parent = mainFrame
     killLabel.ZIndex = 3
 
-    wait(0.1)
-    updateButtons()
     return screenGui, mainFrame
 end
 
