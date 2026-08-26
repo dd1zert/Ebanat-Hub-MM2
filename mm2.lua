@@ -29,6 +29,7 @@ local state = {
     noClip = false,
     speedHack = false,
     jumpPower = false,
+    silentAim = false,
     antiBan = false,
     godMode = false,
     flyMode = false,
@@ -355,6 +356,7 @@ local function createGUI()
         {cat = 1, name = "💰 Auto-Farm", key = "farmMode"},
         {cat = 1, name = "👁️ ESP", key = "espMode"},
         {cat = 1, name = "🎯 Aimbot", key = "aimbotMode"},
+        {cat = 1, name = "🤫 Silent Aim", key = "silentAim"},
         {cat = 1, name = "✈️ Fly", key = "flyMode"},
         {cat = 2, name = "🏃 Speed Hack", key = "speedHack"},
         {cat = 2, name = "🦘 Jump Power", key = "jumpPower"},
@@ -678,6 +680,34 @@ local function noClip()
     end)
 end
 
+local function silentAim()
+    pcall(function()
+        if state.silentAim then
+            local target, minDist = nil, math.huge
+            local myPos = player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character.HumanoidRootPart.Position or Vector3.new(0,0,0)
+            for _, plr in ipairs(players:GetPlayers()) do
+                if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                    if getPlayerRole(plr) == "MURDERER" and isPlayerAlive(plr) then
+                        local dist = (plr.Character.HumanoidRootPart.Position - myPos).Magnitude
+                        if dist < minDist then
+                            minDist = dist
+                            target = plr
+                        end
+                    end
+                end
+            end
+            if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+                local tool = player.Character and player.Character:FindFirstChildOfClass("Tool")
+                if tool and tool:FindFirstChild("Handle") then
+                    tool:Activate()
+                    wait(0.05)
+                    tool:Deactivate()
+                end
+            end
+        end
+    end)
+end
+
 local function godMode()
     pcall(function()
         if state.godMode and player.Character then
@@ -710,6 +740,7 @@ runService.Heartbeat:Connect(function()
         if not state.flyMode then noClip() end
         speedHack()
         jumpPower()
+        if state.silentAim then silentAim() end
         if state.godMode then godMode() end
         if state.antiBan then antiBan() end
         if state.autoServerHop then
