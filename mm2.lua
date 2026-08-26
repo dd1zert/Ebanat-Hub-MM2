@@ -11,7 +11,8 @@ local SETTINGS = {
     jumpPower = 80,
     autoHopTime = 300,
     flySpeed = 50,
-    farmDelay = 0.15,
+    farmDelay = 0.2,
+    farmSpeed = 16,
 }
 
 local ESP_COLORS = {
@@ -42,6 +43,7 @@ local bodyVelocity
 local coinCache = {}
 local lastFarmTime = 0
 local lastCoinUpdate = 0
+local isFarming = false
 
 local function getPlayerRole(plr)
     if not plr or not plr.Character then return "INNOCENT" end
@@ -653,11 +655,10 @@ end
 
 local function autoFarm()
     pcall(function()
-        if not state.farmMode then return end
+        if not state.farmMode or isFarming then return end
         
         local currentTime = tick()
         if currentTime - lastFarmTime < SETTINGS.farmDelay then return end
-        lastFarmTime = currentTime
         
         local char = player.Character
         if not char then return end
@@ -686,6 +687,8 @@ local function autoFarm()
         end
         
         if targetCoin then
+            isFarming = true
+            
             local oldCollide = {}
             for _, part in ipairs(char:GetDescendants()) do
                 if part:IsA("BasePart") then
@@ -696,17 +699,13 @@ local function autoFarm()
             
             local targetPos = targetCoin.Position + Vector3.new(0, 3, 0)
             local distance = (targetPos - root.Position).Magnitude
-            local speed = 16
-            local duration = distance / speed
+            local speed = SETTINGS.farmSpeed
+            local duration = math.max(distance / speed, 0.3)
             
-            if duration > 0.1 then
-                local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear)
-                local tween = tweenService:Create(root, tweenInfo, {CFrame = CFrame.new(targetPos)})
-                tween:Play()
-                tween.Completed:Wait()
-            else
-                root.CFrame = CFrame.new(targetPos)
-            end
+            local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+            local tween = tweenService:Create(root, tweenInfo, {CFrame = CFrame.new(targetPos)})
+            tween:Play()
+            tween.Completed:Wait()
             
             for part, collide in pairs(oldCollide) do
                 if part and part.Parent then
@@ -721,6 +720,9 @@ local function autoFarm()
             if coinIndex then
                 table.remove(coinCache, coinIndex)
             end
+            
+            lastFarmTime = tick()
+            isFarming = false
         end
     end)
 end
@@ -761,27 +763,4 @@ local function aimbot()
         if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
             local camera = workspace.CurrentCamera
             local targetPos = target.Character.HumanoidRootPart.Position
-            camera.CFrame = CFrame.lookAt(camera.CFrame.Position, targetPos)
-            local tool = player.Character and player.Character:FindFirstChildOfClass("Tool")
-            if tool and tool:FindFirstChild("Handle") then
-                tool:Activate()
-                wait(0.05)
-                tool:Deactivate()
-            end
-        end
-    end)
-end
-
-local function autoServerHop()
-    pcall(function() teleportService:Teleport(game.PlaceId, player) end)
-end
-
-local function noClip()
-    pcall(function()
-        if state.noClip and player.Character then
-            for _, part in ipairs(player.Character:GetDescendants()) do
-                if part:IsA("BasePart") then part.CanCollide = false end
-            end
-        elseif player.Character then
-            for _, part in ipairs(player.Character:GetDescendants()) do
-                if part:IsA("BasePart") then part.Can
+            camera.CFrame = CFrame.lookAt(camera
