@@ -11,6 +11,7 @@ local SETTINGS = {
     jumpPower = 80,
     autoHopTime = 300,
     flySpeed = 50,
+    farmDelay = 0.15,
 }
 
 local ESP_COLORS = {
@@ -29,7 +30,6 @@ local state = {
     noClip = false,
     speedHack = false,
     jumpPower = false,
-    silentAim = false,
     antiBan = false,
     godMode = false,
     flyMode = false,
@@ -39,6 +39,8 @@ local state = {
 local flyConnections = {}
 local flying = false
 local bodyVelocity
+local coinCache = {}
+local lastFarmTime = 0
 
 local function getPlayerRole(plr)
     if not plr or not plr.Character then return "INNOCENT" end
@@ -56,6 +58,17 @@ local function isPlayerAlive(plr)
     local humanoid = plr.Character:FindFirstChild("Humanoid")
     if not humanoid then return false end
     return humanoid.Health > 0
+end
+
+local function updateCoinCache()
+    coinCache = {}
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("BasePart") and (obj.Name:find("Coin") or obj.Name:find("Money") or obj.Name:find("Cash")) then
+            if obj.Parent and obj.Transparency < 0.5 then
+                table.insert(coinCache, obj)
+            end
+        end
+    end
 end
 
 local function startFly()
@@ -356,7 +369,6 @@ local function createGUI()
         {cat = 1, name = "💰 Auto-Farm", key = "farmMode"},
         {cat = 1, name = "👁️ ESP", key = "espMode"},
         {cat = 1, name = "🎯 Aimbot", key = "aimbotMode"},
-        {cat = 1, name = "🤫 Silent Aim", key = "silentAim"},
         {cat = 1, name = "✈️ Fly", key = "flyMode"},
         {cat = 2, name = "🏃 Speed Hack", key = "speedHack"},
         {cat = 2, name = "🦘 Jump Power", key = "jumpPower"},
@@ -558,23 +570,33 @@ end
 local function autoFarm()
     pcall(function()
         if not state.farmMode then return end
+        
+        local currentTime = tick()
+        if currentTime - lastFarmTime < SETTINGS.farmDelay then return end
+        lastFarmTime = currentTime
+        
         local char = player.Character
         if not char then return end
         local root = char:FindFirstChild("HumanoidRootPart")
         if not root then return end
         
+        if #coinCache == 0 then
+            updateCoinCache()
+            return
+        end
+        
         local targetCoin = nil
         local minDist = math.huge
         local myPos = root.Position
         
-        for _, obj in ipairs(workspace:GetDescendants()) do
-            if obj:IsA("BasePart") and (obj.Name:find("Coin") or obj.Name:find("Money") or obj.Name:find("Cash")) then
-                if obj.Parent and obj.Transparency < 0.5 then
-                    local dist = (obj.Position - myPos).Magnitude
-                    if dist < minDist then
-                        minDist = dist
-                        targetCoin = obj
-                    end
+        for i, coin in ipairs(coinCache) do
+            if not coin.Parent or coin.Transparency >= 0.5 then
+                table.remove(coinCache, i)
+            else
+                local dist = (coin.Position - myPos).Magnitude
+                if dist < minDist then
+                    minDist = dist
+                    targetCoin = coin
                 end
             end
         end
@@ -610,7 +632,11 @@ local function autoFarm()
             
             firetouchinterest(root, targetCoin, 0)
             firetouchinterest(root, targetCoin, 1)
-            wait(0.05)
+            
+            local coinIndex = table.find(coinCache, targetCoin)
+            if coinIndex then
+                table.remove(coinCache, coinIndex)
+            end
         end
     end)
 end
@@ -680,34 +706,6 @@ local function noClip()
     end)
 end
 
-local function silentAim()
-    pcall(function()
-        if state.silentAim then
-            local target, minDist = nil, math.huge
-            local myPos = player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character.HumanoidRootPart.Position or Vector3.new(0,0,0)
-            for _, plr in ipairs(players:GetPlayers()) do
-                if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-                    if getPlayerRole(plr) == "MURDERER" and isPlayerAlive(plr) then
-                        local dist = (plr.Character.HumanoidRootPart.Position - myPos).Magnitude
-                        if dist < minDist then
-                            minDist = dist
-                            target = plr
-                        end
-                    end
-                end
-            end
-            if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-                local tool = player.Character and player.Character:FindFirstChildOfClass("Tool")
-                if tool and tool:FindFirstChild("Handle") then
-                    tool:Activate()
-                    wait(0.05)
-                    tool:Deactivate()
-                end
-            end
-        end
-    end)
-end
-
 local function godMode()
     pcall(function()
         if state.godMode and player.Character then
@@ -731,16 +729,23 @@ end
 local function antiBan() end
 
 local hopTimer = 0
+local lastCoinUpdate = 0
+
 runService.Heartbeat:Connect(function()
     pcall(function()
-        if state.farmMode then autoFarm() end
+        if state.farmMode then
+            if tick() - lastCoinUpdate > 2 then
+                updateCoinCache()
+                lastCoinUpdate = tick()
+            end
+            autoFarm()
+        end
         if state.autoCollect then autoCollect() end
         if state.aimbotMode then aimbot() end
         if state.espMode then esp() end
         if not state.flyMode then noClip() end
         speedHack()
         jumpPower()
-        if state.silentAim then silentAim() end
         if state.godMode then godMode() end
         if state.antiBan then antiBan() end
         if state.autoServerHop then
