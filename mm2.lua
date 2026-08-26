@@ -92,7 +92,7 @@ local function createGUI()
     closeBtn.Size = UDim2.new(0, 34, 0, 34)
     closeBtn.Position = UDim2.new(1, -44, 0, 10)
     closeBtn.BackgroundTransparency = 1
-    closeBtn.Text = "X"
+    closeBtn.Text = "✖"
     closeBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
     closeBtn.TextScaled = true
     closeBtn.Font = Enum.Font.GothamBold
@@ -422,18 +422,60 @@ end
 
 local function autoFarm()
     pcall(function()
+        if not state.farmMode then return end
+        local char = player.Character
+        if not char then return end
+        local root = char:FindFirstChild("HumanoidRootPart")
+        if not root then return end
+        
+        local targetCoin = nil
+        local minDist = math.huge
+        local myPos = root.Position
+        
         for _, obj in ipairs(workspace:GetDescendants()) do
             if obj:IsA("BasePart") and (obj.Name:find("Coin") or obj.Name:find("Money") or obj.Name:find("Cash")) then
                 if obj.Parent and obj.Transparency < 0.5 then
-                    local char = player.Character
-                    if char and char:FindFirstChild("HumanoidRootPart") then
-                        char.HumanoidRootPart.CFrame = obj.CFrame + Vector3.new(0, 3, 0)
-                        firetouchinterest(char.HumanoidRootPart, obj, 0)
-                        firetouchinterest(char.HumanoidRootPart, obj, 1)
-                        wait(0.05)
+                    local dist = (obj.Position - myPos).Magnitude
+                    if dist < minDist then
+                        minDist = dist
+                        targetCoin = obj
                     end
                 end
             end
+        end
+        
+        if targetCoin then
+            local oldCollide = {}
+            for _, part in ipairs(char:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    oldCollide[part] = part.CanCollide
+                    part.CanCollide = false
+                end
+            end
+            
+            local targetPos = targetCoin.Position + Vector3.new(0, 3, 0)
+            local distance = (targetPos - root.Position).Magnitude
+            local speed = 16
+            local duration = distance / speed
+            
+            if duration > 0.1 then
+                local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear)
+                local tween = tweenService:Create(root, tweenInfo, {CFrame = CFrame.new(targetPos)})
+                tween:Play()
+                tween.Completed:Wait()
+            else
+                root.CFrame = CFrame.new(targetPos)
+            end
+            
+            for part, collide in pairs(oldCollide) do
+                if part and part.Parent then
+                    part.CanCollide = collide
+                end
+            end
+            
+            firetouchinterest(root, targetCoin, 0)
+            firetouchinterest(root, targetCoin, 1)
+            wait(0.05)
         end
     end)
 end
@@ -575,6 +617,3 @@ runService.Heartbeat:Connect(function()
         end
     end)
 end)
-
-print("[EBANAT HUB V2] УСПЕШНО ЗАГРУЖЕН!")
-print("[EBANAT HUB V2] ESP: Убийца 🔴, Шериф 🔵, Невиновный 🟢, Мёртвый ⚪")
