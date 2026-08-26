@@ -56,6 +56,7 @@ local function createGUI()
     screenGui.Name = "EbanatHubV2"
     screenGui.Parent = player:WaitForChild("PlayerGui")
     screenGui.ResetOnSpawn = false
+    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
     local mainFrame = Instance.new("Frame")
     mainFrame.Name = "MainFrame"
@@ -67,35 +68,11 @@ local function createGUI()
     mainFrame.BorderColor3 = Color3.fromRGB(120, 80, 255)
     mainFrame.ClipsDescendants = true
     mainFrame.Parent = screenGui
+    mainFrame.ZIndex = 1
 
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, 16)
     corner.Parent = mainFrame
-
-    local shadow = Instance.new("ImageLabel")
-    shadow.Size = UDim2.new(1.05, 0, 1.05, 0)
-    shadow.Position = UDim2.new(-0.025, 0, -0.025, 0)
-    shadow.BackgroundTransparency = 1
-    shadow.Image = "rbxassetid://1316044015"
-    shadow.ImageColor3 = Color3.fromRGB(120, 80, 255)
-    shadow.ImageTransparency = 0.7
-    shadow.Parent = mainFrame
-
-    local gradientFrame = Instance.new("Frame")
-    gradientFrame.Size = UDim2.new(1, 0, 1, 0)
-    gradientFrame.BackgroundColor3 = Color3.fromRGB(20, 15, 40)
-    gradientFrame.BackgroundTransparency = 0.5
-    gradientFrame.BorderSizePixel = 0
-    gradientFrame.Parent = mainFrame
-
-    local uiGradient = Instance.new("UIGradient")
-    uiGradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(80, 0, 180)),
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(30, 20, 120)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 100, 200))
-    })
-    uiGradient.Rotation = 45
-    uiGradient.Parent = gradientFrame
 
     local titleLabel = Instance.new("TextLabel")
     titleLabel.Size = UDim2.new(0, 200, 0, 40)
@@ -109,6 +86,7 @@ local function createGUI()
     titleLabel.TextStrokeTransparency = 0.2
     titleLabel.TextStrokeColor3 = Color3.fromRGB(120, 0, 255)
     titleLabel.Parent = mainFrame
+    titleLabel.ZIndex = 3
 
     local closeBtn = Instance.new("TextButton")
     closeBtn.Size = UDim2.new(0, 34, 0, 34)
@@ -120,6 +98,7 @@ local function createGUI()
     closeBtn.Font = Enum.Font.GothamBold
     closeBtn.BorderSizePixel = 0
     closeBtn.Parent = mainFrame
+    closeBtn.ZIndex = 3
     closeBtn.MouseButton1Click:Connect(function()
         screenGui:Destroy()
     end)
@@ -134,14 +113,18 @@ local function createGUI()
     minimizeBtn.Font = Enum.Font.GothamBold
     minimizeBtn.BorderSizePixel = 0
     minimizeBtn.Parent = mainFrame
+    minimizeBtn.ZIndex = 3
     minimizeBtn.MouseButton1Click:Connect(function()
         state.isMinimized = not state.isMinimized
         local targetSize = state.isMinimized and UDim2.new(0, 600, 0, 45) or UDim2.new(0, 600, 0, 240)
         tweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {Size = targetSize}):Play()
         for _, child in ipairs(mainFrame:GetChildren()) do
-            if child ~= titleLabel and child ~= closeBtn and child ~= minimizeBtn and child ~= shadow and child ~= gradientFrame then
+            if child ~= titleLabel and child ~= closeBtn and child ~= minimizeBtn then
                 child.Visible = not state.isMinimized
             end
+        end
+        if not state.isMinimized then
+            updateButtons()
         end
     end)
 
@@ -151,6 +134,7 @@ local function createGUI()
     dragButton.BackgroundTransparency = 1
     dragButton.Text = ""
     dragButton.Parent = mainFrame
+    dragButton.ZIndex = 2
 
     local dragging = false
     local dragStart, startPos
@@ -181,6 +165,7 @@ local function createGUI()
     tabFrame.Position = UDim2.new(0, 15, 0, 55)
     tabFrame.BackgroundTransparency = 1
     tabFrame.Parent = mainFrame
+    tabFrame.ZIndex = 2
 
     local categories = {
         {name = "ОСНОВНЫЕ", color = Color3.fromRGB(80, 200, 255)},
@@ -203,6 +188,7 @@ local function createGUI()
         tabBtn.BorderSizePixel = 0
         tabBtn.BackgroundTransparency = (i == currentCategory) and 0.2 or 0.4
         tabBtn.Parent = tabFrame
+        tabBtn.ZIndex = 3
 
         local tabCorner = Instance.new("UICorner")
         tabCorner.CornerRadius = UDim.new(0, 8)
@@ -230,6 +216,7 @@ local function createGUI()
     scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(150, 80, 255)
     scrollFrame.ScrollBarImageTransparency = 0.4
     scrollFrame.Parent = mainFrame
+    scrollFrame.ZIndex = 2
 
     local gridLayout = Instance.new("UIGridLayout")
     gridLayout.CellSize = UDim2.new(0, 130, 0, 42)
@@ -272,6 +259,7 @@ local function createGUI()
         btn.BackgroundTransparency = 0.25
         btn.Parent = scrollFrame
         btn:SetAttribute("Category", btnData.cat)
+        btn.ZIndex = 3
 
         local btnCorner = Instance.new("UICorner")
         btnCorner.CornerRadius = UDim.new(0, 10)
@@ -292,6 +280,7 @@ local function createGUI()
         indicator.BorderSizePixel = 2
         indicator.BorderColor3 = Color3.fromRGB(200, 200, 200)
         indicator.Parent = btn
+        indicator.ZIndex = 4
 
         local indicatorCorner = Instance.new("UICorner")
         indicatorCorner.CornerRadius = UDim.new(1, 0)
@@ -304,6 +293,7 @@ local function createGUI()
         indicatorInner.BackgroundTransparency = 0.8
         indicatorInner.BorderSizePixel = 0
         indicatorInner.Parent = indicator
+        indicatorInner.ZIndex = 5
 
         local indicatorInnerCorner = Instance.new("UICorner")
         indicatorInnerCorner.CornerRadius = UDim.new(1, 0)
@@ -334,6 +324,7 @@ local function createGUI()
     killBtn.BorderSizePixel = 2
     killBtn.BorderColor3 = Color3.fromRGB(255, 0, 0)
     killBtn.Parent = mainFrame
+    killBtn.ZIndex = 3
 
     local killCorner = Instance.new("UICorner")
     killCorner.CornerRadius = UDim.new(0, 10)
@@ -362,6 +353,7 @@ local function createGUI()
     killLabel.Font = Enum.Font.Gotham
     killLabel.TextScaled = true
     killLabel.Parent = mainFrame
+    killLabel.ZIndex = 3
 
     wait(0.1)
     updateButtons()
