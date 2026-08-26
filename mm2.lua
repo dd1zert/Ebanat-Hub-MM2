@@ -38,7 +38,7 @@ local state = {
 
 local flyConnections = {}
 local flying = false
-local bodyVelocity, bodyGyro
+local bodyVelocity
 
 local function getPlayerRole(plr)
     if not plr or not plr.Character then return "INNOCENT" end
@@ -76,13 +76,6 @@ local function startFly()
     bodyVelocity.Velocity = Vector3.new(0, 0, 0)
     bodyVelocity.Parent = root
 
-    bodyGyro = Instance.new("BodyGyro")
-    bodyGyro.D = 500
-    bodyGyro.P = 5000
-    bodyGyro.MaxTorque = Vector3.new(0, 4000, 0)
-    bodyGyro.CFrame = root.CFrame
-    bodyGyro.Parent = root
-
     local moveForward = false
     local moveBackward = false
     local moveLeft = false
@@ -118,19 +111,29 @@ local function startFly()
             return
         end
 
+        local camera = workspace.CurrentCamera
+        local cameraCFrame = camera.CFrame
+
+        local forward = cameraCFrame.LookVector
+        local right = cameraCFrame.RightVector
+        local up = Vector3.new(0, 1, 0)
+
+        forward = Vector3.new(forward.X, 0, forward.Z).Unit
+        right = Vector3.new(right.X, 0, right.Z).Unit
+
         local direction = Vector3.new(0, 0, 0)
-        if moveForward then direction = direction + root.CFrame.LookVector end
-        if moveBackward then direction = direction - root.CFrame.LookVector end
-        if moveLeft then direction = direction - root.CFrame.RightVector end
-        if moveRight then direction = direction + root.CFrame.RightVector end
-        if moveUp then direction = direction + Vector3.new(0, 1, 0) end
-        if moveDown then direction = direction - Vector3.new(0, 1, 0) end
+        if moveForward then direction = direction + forward end
+        if moveBackward then direction = direction - forward end
+        if moveLeft then direction = direction - right end
+        if moveRight then direction = direction + right end
+        if moveUp then direction = direction + up end
+        if moveDown then direction = direction - up end
 
         if direction.Magnitude > 0 then
             direction = direction.Unit * SETTINGS.flySpeed
         end
+
         bodyVelocity.Velocity = direction
-        bodyGyro.CFrame = root.CFrame
 
         for _, part in ipairs(char:GetDescendants()) do
             if part:IsA("BasePart") then
@@ -156,7 +159,6 @@ local function stopFly()
     flyConnections = {}
 
     if bodyVelocity then bodyVelocity:Destroy() end
-    if bodyGyro then bodyGyro:Destroy() end
 
     local char = player.Character
     if char then
@@ -750,6 +752,3 @@ runService.Heartbeat:Connect(function()
         end
     end)
 end)
-
-print("[EBANAT HUB V2] УСПЕШНО ЗАГРУЖЕН!")
-print("[EBANAT HUB V2] ESP: Убийца 🔴, Шериф 🔵, Невиновный 🟢, Мёртвый ⚪")
