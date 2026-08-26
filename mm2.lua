@@ -201,7 +201,7 @@ local function createGUI()
     local titleLabel = Instance.new("TextLabel")
     titleLabel.Size = UDim2.new(0, 200, 0, 40)
     titleLabel.Position = UDim2.new(0, 15, 0, 10)
-    titleLabel.Text = "EBANAT HUB V2"
+    titleLabel.Text = "Ebanat Hub V2.1"
     titleLabel.TextColor3 = Color3.fromRGB(180, 140, 255)
     titleLabel.BackgroundTransparency = 1
     titleLabel.Font = Enum.Font.GothamBold
