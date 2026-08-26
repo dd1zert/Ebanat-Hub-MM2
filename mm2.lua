@@ -6,8 +6,8 @@ screenGui.ResetOnSpawn = false
 
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 580, 0, 200)
-mainFrame.Position = UDim2.new(0.5, -290, 0.5, -100)
+mainFrame.Size = UDim2.new(0, 600, 0, 210)
+mainFrame.Position = UDim2.new(0.5, -300, 0.5, -105)
 mainFrame.BackgroundColor3 = Color3.fromRGB(12, 10, 26)
 mainFrame.BackgroundTransparency = 0.1
 mainFrame.BorderSizePixel = 2
@@ -34,7 +34,7 @@ local closeBtn = Instance.new("TextButton")
 closeBtn.Size = UDim2.new(0, 30, 0, 30)
 closeBtn.Position = UDim2.new(1, -40, 0, 10)
 closeBtn.BackgroundTransparency = 1
-closeBtn.Text = "✖"
+closeBtn.Text = "✕"
 closeBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
 closeBtn.TextScaled = true
 closeBtn.Font = Enum.Font.GothamBold
@@ -52,11 +52,11 @@ minimizeBtn.TextColor3 = Color3.fromRGB(200, 200, 255)
 minimizeBtn.TextScaled = true
 minimizeBtn.Font = Enum.Font.GothamBold
 minimizeBtn.Parent = mainFrame
+
 local isMinimized = false
 minimizeBtn.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
-    local targetSize = isMinimized and UDim2.new(0, 580, 0, 45) or UDim2.new(0, 580, 0, 200)
-    mainFrame:TweenSize(targetSize, Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.3, true)
+    mainFrame.Size = isMinimized and UDim2.new(0, 600, 0, 45) or UDim2.new(0, 600, 0, 210)
     for _, child in ipairs(mainFrame:GetChildren()) do
         if child ~= title and child ~= closeBtn and child ~= minimizeBtn then
             child.Visible = not isMinimized
@@ -129,7 +129,7 @@ for i, cat in ipairs(categories) do
     tabCorner.Parent = tabBtn
 
     local contentFrame = Instance.new("Frame")
-    contentFrame.Size = UDim2.new(0, 560, 0, 120)
+    contentFrame.Size = UDim2.new(0, 560, 0, 130)
     contentFrame.Position = UDim2.new(0, 10, 0, 50)
     contentFrame.BackgroundTransparency = 1
     contentFrame.Parent = mainFrame
@@ -230,7 +230,7 @@ end
 
 local killBtn = Instance.new("TextButton")
 killBtn.Size = UDim2.new(0, 50, 0, 30)
-killBtn.Position = UDim2.new(1, -60, 0, 160)
+killBtn.Position = UDim2.new(1, -60, 0, 170)
 killBtn.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
 killBtn.BackgroundTransparency = 0.15
 killBtn.Text = "💀"
@@ -248,15 +248,5 @@ killCorner.Parent = killBtn
 killBtn.MouseButton1Click:Connect(function()
     game:Shutdown()
 end)
-
-local killLabel = Instance.new("TextLabel")
-killLabel.Size = UDim2.new(0, 50, 0, 14)
-killLabel.Position = UDim2.new(1, -60, 0, 180)
-killLabel.Text = "KILL"
-killLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
-killLabel.BackgroundTransparency = 1
-killLabel.Font = Enum.Font.Gotham
-killLabel.TextScaled = true
-killLabel.Parent = mainFrame
 
 print("[EBANAT HUB V2] Загружен!")
