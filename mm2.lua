@@ -793,13 +793,3 @@ local function godMode()
             if humanoid then
                 humanoid.MaxHealth = 100
                 humanoid.Health = 100
-                humanoid.BreakJointsOnDeath = true
-            end
-        end
-    end)
-end
-
-local function antiBan() end
-
-local hopTimer = 0
-runService.Heartbeat:Connect(function()
