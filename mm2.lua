@@ -61,6 +61,52 @@ local function isPlayerAlive(plr)
     return humanoid.Health > 0
 end
 
+local function getMurderer()
+    for _, plr in ipairs(players:GetPlayers()) do
+        if plr ~= player and getPlayerRole(plr) == "MURDERER" and isPlayerAlive(plr) then
+            return plr
+        end
+    end
+    return nil
+end
+
+local function getSheriff()
+    for _, plr in ipairs(players:GetPlayers()) do
+        if plr ~= player and getPlayerRole(plr) == "SHERIFF" and isPlayerAlive(plr) then
+            return plr
+        end
+    end
+    return nil
+end
+
+local function killTarget(target, isMurderer)
+    if not target or not target.Character then return false end
+    local char = player.Character
+    if not char then return false end
+    local root = char:FindFirstChild("HumanoidRootPart")
+    if not root then return false end
+    
+    local targetRoot = target.Character:FindFirstChild("HumanoidRootPart")
+    if not targetRoot then return false end
+    
+    root.CFrame = targetRoot.CFrame + Vector3.new(0, 2, 0)
+    
+    local tool = char:FindFirstChildOfClass("Tool")
+    if tool and tool:FindFirstChild("Handle") then
+        tool:Activate()
+        wait(0.05)
+        tool:Deactivate()
+    else
+        local targetHumanoid = target.Character:FindFirstChild("Humanoid")
+        if targetHumanoid then
+            targetHumanoid.Health = 0
+        end
+    end
+    
+    wait(0.1)
+    return true
+end
+
 local function updateCoinCache()
     coinCache = {}
     for _, obj in ipairs(workspace:GetDescendants()) do
@@ -198,8 +244,8 @@ local function createGUI()
 
     local mainFrame = Instance.new("Frame")
     mainFrame.Name = "MainFrame"
-    mainFrame.Size = UDim2.new(0, 600, 0, 240)
-    mainFrame.Position = UDim2.new(0.5, -300, 0.5, -120)
+    mainFrame.Size = UDim2.new(0, 600, 0, 260)
+    mainFrame.Position = UDim2.new(0.5, -300, 0.5, -130)
     mainFrame.BackgroundColor3 = Color3.fromRGB(12, 10, 26)
     mainFrame.BackgroundTransparency = 0.1
     mainFrame.BorderSizePixel = 2
@@ -255,7 +301,7 @@ local function createGUI()
     minimizeBtn.ZIndex = 3
     minimizeBtn.MouseButton1Click:Connect(function()
         state.isMinimized = not state.isMinimized
-        local targetSize = state.isMinimized and UDim2.new(0, 600, 0, 45) or UDim2.new(0, 600, 0, 240)
+        local targetSize = state.isMinimized and UDim2.new(0, 600, 0, 45) or UDim2.new(0, 600, 0, 260)
         tweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {Size = targetSize}):Play()
         for _, child in ipairs(mainFrame:GetChildren()) do
             if child ~= titleLabel and child ~= closeBtn and child ~= minimizeBtn then
@@ -306,7 +352,8 @@ local function createGUI()
     local categories = {
         {name = "ОСНОВНЫЕ", color = Color3.fromRGB(80, 200, 255)},
         {name = "ИГРОК", color = Color3.fromRGB(255, 200, 80)},
-        {name = "РАЗНОЕ", color = Color3.fromRGB(200, 80, 255)}
+        {name = "РАЗНОЕ", color = Color3.fromRGB(200, 80, 255)},
+        {name = "ЭКСТРА", color = Color3.fromRGB(255, 50, 50)}
     }
 
     local currentCategory = 1
@@ -315,8 +362,8 @@ local function createGUI()
 
     for i, cat in ipairs(categories) do
         local tabBtn = Instance.new("TextButton")
-        tabBtn.Size = UDim2.new(0.333, -4, 1, 0)
-        tabBtn.Position = UDim2.new((i-1)*0.333, 2, 0, 0)
+        tabBtn.Size = UDim2.new(0.25, -4, 1, 0)
+        tabBtn.Position = UDim2.new((i-1)*0.25, 2, 0, 0)
         tabBtn.Text = cat.name
         tabBtn.BackgroundColor3 = (i == currentCategory) and cat.color or Color3.fromRGB(35, 30, 55)
         tabBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -332,7 +379,7 @@ local function createGUI()
         tabCorner.Parent = tabBtn
 
         local contentFrame = Instance.new("ScrollingFrame")
-        contentFrame.Size = UDim2.new(0, 430, 0, 135)
+        contentFrame.Size = UDim2.new(0, 430, 0, 145)
         contentFrame.Position = UDim2.new(0, 15, 0, 95)
         contentFrame.BackgroundTransparency = 1
         contentFrame.BorderSizePixel = 0
@@ -378,19 +425,49 @@ local function createGUI()
         {cat = 3, name = "🎁 Auto-Collect", key = "autoCollect"},
         {cat = 3, name = "🔄 Auto-Server-Hop", key = "autoServerHop"},
         {cat = 3, name = "🛡️ Anti-Ban", key = "antiBan"},
+        {cat = 4, name = "🔪 Убить Мардера", key = "killMurderer"},
+        {cat = 4, name = "🔫 Убить Шерифа", key = "killSheriff"},
     }
+
+    local function handleKill(key)
+        if key == "killMurderer" then
+            local target = getMurderer()
+            if target then
+                local success = killTarget(target, true)
+                if success then
+                    print("[EBANAT] Мардер уничтожен!")
+                else
+                    print("[EBANAT] Не удалось убить мардера!")
+                end
+            else
+                print("[EBANAT] Мардер не найден или уже мёртв!")
+            end
+        elseif key == "killSheriff" then
+            local target = getSheriff()
+            if target then
+                local success = killTarget(target, false)
+                if success then
+                    print("[EBANAT] Шериф уничтожен!")
+                else
+                    print("[EBANAT] Не удалось убить шерифа!")
+                end
+            else
+                print("[EBANAT] Шериф не найден или уже мёртв!")
+            end
+        end
+    end
 
     for _, btnData in ipairs(allButtons) do
         local contentFrame = contentFrames[btnData.cat]
         local btn = Instance.new("TextButton")
         btn.Size = UDim2.new(0, 130, 0, 42)
-        btn.BackgroundColor3 = Color3.fromRGB(30, 25, 50)
+        btn.BackgroundColor3 = (btnData.key == "killMurderer" or btnData.key == "killSheriff") and Color3.fromRGB(180, 0, 0) or Color3.fromRGB(30, 25, 50)
         btn.Text = btnData.name
         btn.TextColor3 = Color3.fromRGB(240, 240, 255)
         btn.TextSize = 13
         btn.Font = Enum.Font.GothamSemibold
         btn.BorderSizePixel = 0
-        btn.BackgroundTransparency = 0.25
+        btn.BackgroundTransparency = (btnData.key == "killMurderer" or btnData.key == "killSheriff") and 0.3 or 0.25
         btn.Parent = contentFrame
         btn.ZIndex = 3
 
@@ -402,7 +479,7 @@ local function createGUI()
             tweenService:Create(btn, TweenInfo.new(0.15), {BackgroundTransparency = 0.05}):Play()
         end)
         btn.MouseLeave:Connect(function()
-            tweenService:Create(btn, TweenInfo.new(0.15), {BackgroundTransparency = 0.25}):Play()
+            tweenService:Create(btn, TweenInfo.new(0.15), {BackgroundTransparency = (btnData.key == "killMurderer" or btnData.key == "killSheriff") and 0.3 or 0.25}):Play()
         end)
 
         local indicator = Instance.new("Frame")
@@ -434,6 +511,12 @@ local function createGUI()
 
         btn.MouseButton1Click:Connect(function()
             local key = btnData.key
+            
+            if key == "killMurderer" or key == "killSheriff" then
+                handleKill(key)
+                return
+            end
+            
             state[key] = not state[key]
             local color = state[key] and Color3.fromRGB(0, 255, 120) or Color3.fromRGB(100, 100, 100)
             indicator.BackgroundColor3 = color
@@ -701,58 +784,4 @@ local function noClip()
             end
         elseif player.Character then
             for _, part in ipairs(player.Character:GetDescendants()) do
-                if part:IsA("BasePart") then part.CanCollide = true end
-            end
-        end
-    end)
-end
-
-local function godMode()
-    pcall(function()
-        if state.godMode and player.Character then
-            local humanoid = player.Character:FindFirstChild("Humanoid")
-            if humanoid then
-                humanoid.MaxHealth = math.huge
-                humanoid.Health = math.huge
-                humanoid.BreakJointsOnDeath = false
-            end
-        elseif player.Character then
-            local humanoid = player.Character:FindFirstChild("Humanoid")
-            if humanoid then
-                humanoid.MaxHealth = 100
-                humanoid.Health = 100
-                humanoid.BreakJointsOnDeath = true
-            end
-        end
-    end)
-end
-
-local function antiBan() end
-
-local hopTimer = 0
-runService.Heartbeat:Connect(function()
-    pcall(function()
-        if state.farmMode then
-            if tick() - lastCoinUpdate > 2 then
-                updateCoinCache()
-                lastCoinUpdate = tick()
-            end
-            autoFarm()
-        end
-        if state.autoCollect then autoCollect() end
-        if state.aimbotMode then aimbot() end
-        if state.espMode then esp() end
-        if not state.flyMode then noClip() end
-        speedHack()
-        jumpPower()
-        if state.godMode then godMode() end
-        if state.antiBan then antiBan() end
-        if state.autoServerHop then
-            hopTimer = hopTimer + 0.016
-            if hopTimer > SETTINGS.autoHopTime then
-                hopTimer = 0
-                autoServerHop()
-            end
-        end
-    end)
-end)
+                if part:IsA("BasePart") then part.Can
