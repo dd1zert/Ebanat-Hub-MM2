@@ -216,7 +216,7 @@ local function createGUI()
         {cat = 2, name = "🧱 No-Clip", key = "noClip"},
         {cat = 2, name = "🏃 Speed Hack", key = "speedHack"},
         {cat = 2, name = "🦘 Jump Power", key = "jumpPower"},
-        {cat = 3, name = "👁️ ESP (Цветной)", key = "espMode"},
+        {cat = 3, name = "👁️ ESP (По оружию)", key = "espMode"},
         {cat = 3, name = "🛡️ Anti-Ban", key = "antiBan"},
         {cat = 4, name = "🎯 Aimbot", key = "aimbotMode"},
         {cat = 4, name = "🤫 Silent Aim", key = "silentAim"},
@@ -601,3 +601,6 @@ runService.Heartbeat:Connect(function()
         end
     end)
 end)
+
+print("[EBANAT HUB V2] УСПЕШНО ЗАГРУЖЕН!")
+print("[EBANAT HUB V2] ESP работает по оружию: нож = убийца, пистолет = шериф")
