@@ -33,8 +33,7 @@ local state = {
     antiBan = false,
     godMode = false,
     flyMode = false,
-    isMinimized = false,
-    ragdoll = false,
+    isMinimized = false
 }
 
 local flyConnections = {}
@@ -42,7 +41,7 @@ local flying = false
 local bodyVelocity
 local coinCache = {}
 local lastFarmTime = 0
-local ragdollConnections = {}
+local lastCoinUpdate = 0
 
 local function getPlayerRole(plr)
     if not plr or not plr.Character then return "INNOCENT" end
@@ -70,81 +69,6 @@ local function updateCoinCache()
                 table.insert(coinCache, obj)
             end
         end
-    end
-end
-
-local function toggleRagdoll()
-    local char = player.Character
-    if not char then return end
-    local humanoid = char:FindFirstChild("Humanoid")
-    local root = char:FindFirstChild("HumanoidRootPart")
-    if not humanoid or not root then return end
-    
-    state.ragdoll = not state.ragdoll
-    
-    if state.ragdoll then
-        humanoid.PlatformStand = false
-        humanoid.AutoRotate = false
-        
-        local bodyVelocity = Instance.new("BodyVelocity")
-        bodyVelocity.MaxForce = Vector3.new(0, 0, 0)
-        bodyVelocity.Velocity = Vector3.new(0, 0, 0)
-        bodyVelocity.Parent = root
-        
-        local bodyGyro = Instance.new("BodyGyro")
-        bodyGyro.D = 0
-        bodyGyro.P = 0
-        bodyGyro.MaxTorque = Vector3.new(0, 0, 0)
-        bodyGyro.Parent = root
-        
-        for _, part in ipairs(char:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = false
-            end
-        end
-        
-        local function keepRagdoll()
-            if not state.ragdoll or not char or not char.Parent then
-                return
-            end
-            for _, part in ipairs(char:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = false
-                    part.Velocity = Vector3.new(0, 0, 0)
-                    part.RotVelocity = Vector3.new(0, 0, 0)
-                end
-            end
-            root.Velocity = Vector3.new(0, -5, 0)
-        end
-        
-        local connection = runService.Heartbeat:Connect(keepRagdoll)
-        table.insert(ragdollConnections, connection)
-        
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, true)
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics, true)
-        
-    else
-        for _, conn in ipairs(ragdollConnections) do
-            conn:Disconnect()
-        end
-        ragdollConnections = {}
-        
-        local bodyVel = root:FindFirstChild("BodyVelocity")
-        local bodyGyr = root:FindFirstChild("BodyGyro")
-        if bodyVel then bodyVel:Destroy() end
-        if bodyGyr then bodyGyr:Destroy() end
-        
-        for _, part in ipairs(char:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = true
-                part.Velocity = Vector3.new(0, 0, 0)
-                part.RotVelocity = Vector3.new(0, 0, 0)
-            end
-        end
-        
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics, false)
-        humanoid.AutoRotate = true
     end
 end
 
@@ -580,13 +504,6 @@ local gui, mainFrame = createGUI()
 mainFrame.BackgroundTransparency = 1
 tweenService:Create(mainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad), {BackgroundTransparency = 0.1}):Play()
 
-userInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-    if input.KeyCode == Enum.KeyCode.R then
-        toggleRagdoll()
-    end
-end)
-
 local function esp()
     pcall(function()
         if not state.espMode then
@@ -789,3 +706,53 @@ local function noClip()
         end
     end)
 end
+
+local function godMode()
+    pcall(function()
+        if state.godMode and player.Character then
+            local humanoid = player.Character:FindFirstChild("Humanoid")
+            if humanoid then
+                humanoid.MaxHealth = math.huge
+                humanoid.Health = math.huge
+                humanoid.BreakJointsOnDeath = false
+            end
+        elseif player.Character then
+            local humanoid = player.Character:FindFirstChild("Humanoid")
+            if humanoid then
+                humanoid.MaxHealth = 100
+                humanoid.Health = 100
+                humanoid.BreakJointsOnDeath = true
+            end
+        end
+    end)
+end
+
+local function antiBan() end
+
+local hopTimer = 0
+runService.Heartbeat:Connect(function()
+    pcall(function()
+        if state.farmMode then
+            if tick() - lastCoinUpdate > 2 then
+                updateCoinCache()
+                lastCoinUpdate = tick()
+            end
+            autoFarm()
+        end
+        if state.autoCollect then autoCollect() end
+        if state.aimbotMode then aimbot() end
+        if state.espMode then esp() end
+        if not state.flyMode then noClip() end
+        speedHack()
+        jumpPower()
+        if state.godMode then godMode() end
+        if state.antiBan then antiBan() end
+        if state.autoServerHop then
+            hopTimer = hopTimer + 0.016
+            if hopTimer > SETTINGS.autoHopTime then
+                hopTimer = 0
+                autoServerHop()
+            end
+        end
+    end)
+end)
