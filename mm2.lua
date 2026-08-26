@@ -34,39 +34,37 @@ local state = {
 }
 
 local function getPlayerRole(plr)
-    if not plr or not plr.Character then return "UNKNOWN" end
-    local name = plr.Name
-    if name:find("Murderer") or name:find("Убийца") then
-        return "MURDERER"
-    elseif name:find("Sheriff") or name:find("Шериф") then
-        return "SHERIFF"
-    end
-    local character = plr.Character
-    if character then
-        local humanoid = character:FindFirstChild("Humanoid")
-        if humanoid then
-            local roleTag = humanoid:FindFirstChild("RoleTag")
-            if roleTag then
-                local roleValue = roleTag.Value
-                if roleValue == "Murderer" then
-                    return "MURDERER"
-                elseif roleValue == "Sheriff" then
-                    return "SHERIFF"
-                else
-                    return "INNOCENT"
-                end
-            end
+    if not plr then return "INNOCENT" end
+
+    local playerGui = plr:FindFirstChild("PlayerGui")
+    if playerGui then
+        if playerGui:FindFirstChild("MurdererGUI") or playerGui:FindFirstChild("KillGUI") or playerGui:FindFirstChild("KnifeGUI") then
+            return "MURDERER"
         end
-        local tool = character:FindFirstChildOfClass("Tool")
+        if playerGui:FindFirstChild("SheriffGUI") or playerGui:FindFirstChild("GunGUI") or playerGui:FindFirstChild("RevolverGUI") then
+            return "SHERIFF"
+        end
+    end
+
+    if plr.Character then
+        local tool = plr.Character:FindFirstChildOfClass("Tool")
         if tool then
-            local toolName = tool.Name
-            if toolName:find("Knife") or toolName:find("Нож") then
+            local toolName = tool.Name:lower()
+            if toolName:find("knife") or toolName:find("нож") then
                 return "MURDERER"
-            elseif toolName:find("Gun") or toolName:find("Пистолет") then
+            elseif toolName:find("gun") or toolName:find("пистолет") or toolName:find("revolver") then
                 return "SHERIFF"
             end
         end
     end
+
+    local name = plr.Name:lower()
+    if name:find("murderer") or name:find("убийца") then
+        return "MURDERER"
+    elseif name:find("sheriff") or name:find("шериф") then
+        return "SHERIFF"
+    end
+
     return "INNOCENT"
 end
 
@@ -516,17 +514,16 @@ end
 
 local function speedHack()
     pcall(function()
-        if state.speedHack and player.Character then
+        if player.Character then
             local humanoid = player.Character:FindFirstChild("Humanoid")
             if humanoid then
-                humanoid.WalkSpeed = SETTINGS.walkSpeed
-                humanoid.JumpPower = SETTINGS.jumpPower
-            end
-        elseif player.Character then
-            local humanoid = player.Character:FindFirstChild("Humanoid")
-            if humanoid then
-                humanoid.WalkSpeed = 16
-                humanoid.JumpPower = 50
+                if state.speedHack then
+                    humanoid.WalkSpeed = SETTINGS.walkSpeed
+                    humanoid.JumpPower = SETTINGS.jumpPower
+                else
+                    humanoid.WalkSpeed = 16
+                    humanoid.JumpPower = 50
+                end
             end
         end
     end)
