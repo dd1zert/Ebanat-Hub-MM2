@@ -1,6 +1,5 @@
 local player = game.Players.LocalPlayer
 local runService = game:GetService("RunService")
-local userInput = game:GetService("UserInputService")
 local tweenService = game:GetService("TweenService")
 local players = game:GetService("Players")
 local teleportService = game:GetService("TeleportService")
@@ -34,37 +33,18 @@ local state = {
 }
 
 local function getPlayerRole(plr)
-    if not plr then return "INNOCENT" end
-
-    local playerGui = plr:FindFirstChild("PlayerGui")
-    if playerGui then
-        if playerGui:FindFirstChild("MurdererGUI") or playerGui:FindFirstChild("KillGUI") or playerGui:FindFirstChild("KnifeGUI") then
+    if not plr or not plr.Character then return "INNOCENT" end
+    
+    local tool = plr.Character:FindFirstChildOfClass("Tool")
+    if tool then
+        local toolName = tool.Name:lower()
+        if toolName:find("knife") or toolName:find("нож") then
             return "MURDERER"
-        end
-        if playerGui:FindFirstChild("SheriffGUI") or playerGui:FindFirstChild("GunGUI") or playerGui:FindFirstChild("RevolverGUI") then
+        elseif toolName:find("gun") or toolName:find("пистолет") or toolName:find("revolver") then
             return "SHERIFF"
         end
     end
-
-    if plr.Character then
-        local tool = plr.Character:FindFirstChildOfClass("Tool")
-        if tool then
-            local toolName = tool.Name:lower()
-            if toolName:find("knife") or toolName:find("нож") then
-                return "MURDERER"
-            elseif toolName:find("gun") or toolName:find("пистолет") or toolName:find("revolver") then
-                return "SHERIFF"
-            end
-        end
-    end
-
-    local name = plr.Name:lower()
-    if name:find("murderer") or name:find("убийца") then
-        return "MURDERER"
-    elseif name:find("sheriff") or name:find("шериф") then
-        return "SHERIFF"
-    end
-
+    
     return "INNOCENT"
 end
 
@@ -385,11 +365,13 @@ local function esp()
             end
             return
         end
+        
         for _, plr in ipairs(players:GetPlayers()) do
             if plr ~= player and plr.Character then
                 local highlight = plr.Character:FindFirstChild("ROCKET_ESP")
                 local isAlive = isPlayerAlive(plr)
                 local role = getPlayerRole(plr)
+                
                 local color = ESP_COLORS.INNOCENT
                 if not isAlive then
                     color = ESP_COLORS.DEAD
@@ -397,9 +379,8 @@ local function esp()
                     color = ESP_COLORS.MURDERER
                 elseif role == "SHERIFF" then
                     color = ESP_COLORS.SHERIFF
-                else
-                    color = ESP_COLORS.INNOCENT
                 end
+                
                 if not highlight then
                     highlight = Instance.new("Highlight")
                     highlight.Name = "ROCKET_ESP"
@@ -407,14 +388,33 @@ local function esp()
                     highlight.FillTransparency = 0.6
                     highlight.OutlineTransparency = 0.1
                 end
+                
                 highlight.OutlineColor = color
                 highlight.FillColor = color
+                
                 if role == "MURDERER" and isAlive then
                     highlight.FillTransparency = 0.4
                     highlight.OutlineTransparency = 0
                 else
                     highlight.FillTransparency = 0.6
                     highlight.OutlineTransparency = 0.1
+                end
+            end
+        end
+    end)
+end
+
+local function speedHack()
+    pcall(function()
+        if player.Character then
+            local humanoid = player.Character:FindFirstChild("Humanoid")
+            if humanoid then
+                if state.speedHack then
+                    humanoid.WalkSpeed = SETTINGS.walkSpeed
+                    humanoid.JumpPower = SETTINGS.jumpPower
+                else
+                    humanoid.WalkSpeed = 16
+                    humanoid.JumpPower = 50
                 end
             end
         end
@@ -464,8 +464,7 @@ local function aimbot()
         local myPos = player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character.HumanoidRootPart.Position or Vector3.new(0,0,0)
         for _, plr in ipairs(players:GetPlayers()) do
             if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-                local isMurderer = getPlayerRole(plr) == "MURDERER"
-                if isMurderer and isPlayerAlive(plr) then
+                if getPlayerRole(plr) == "MURDERER" and isPlayerAlive(plr) then
                     local dist = (plr.Character.HumanoidRootPart.Position - myPos).Magnitude
                     if dist < minDist then
                         minDist = dist
@@ -512,23 +511,6 @@ local function noClip()
     end)
 end
 
-local function speedHack()
-    pcall(function()
-        if player.Character then
-            local humanoid = player.Character:FindFirstChild("Humanoid")
-            if humanoid then
-                if state.speedHack then
-                    humanoid.WalkSpeed = SETTINGS.walkSpeed
-                    humanoid.JumpPower = SETTINGS.jumpPower
-                else
-                    humanoid.WalkSpeed = 16
-                    humanoid.JumpPower = 50
-                end
-            end
-        end
-    end)
-end
-
 local function silentAim()
     pcall(function()
         if state.silentAim then
@@ -537,8 +519,7 @@ local function silentAim()
             local myPos = player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character.HumanoidRootPart.Position or Vector3.new(0,0,0)
             for _, plr in ipairs(players:GetPlayers()) do
                 if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-                    local isMurderer = getPlayerRole(plr) == "MURDERER"
-                    if isMurderer and isPlayerAlive(plr) then
+                    if getPlayerRole(plr) == "MURDERER" and isPlayerAlive(plr) then
                         local dist = (plr.Character.HumanoidRootPart.Position - myPos).Magnitude
                         if dist < minDist then
                             minDist = dist
@@ -591,7 +572,7 @@ runService.Heartbeat:Connect(function()
         if state.aimbotMode then aimbot() end
         if state.espMode then esp() end
         if state.noClip then noClip() end
-        if state.speedHack then speedHack() end
+        speedHack()
         if state.silentAim then silentAim() end
         if state.godMode then godMode() end
         if state.antiBan then antiBan() end
@@ -604,3 +585,6 @@ runService.Heartbeat:Connect(function()
         end
     end)
 end)
+
+print("[EBANAT HUB V2] УСПЕШНО ЗАГРУЖЕН!")
+print("[EBANAT HUB V2] ESP: Убийца 🔴, Шериф 🔵, Невиновный 🟢, Мёртвый ⚪")
