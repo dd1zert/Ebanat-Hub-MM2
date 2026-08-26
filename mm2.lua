@@ -30,7 +30,8 @@ local state = {
     silentAim = false,
     antiBan = false,
     godMode = false,
-    showMenu = true
+    showMenu = true,
+    isMinimized = false
 }
 
 local function getPlayerRole(plr)
@@ -59,8 +60,8 @@ local function createGUI()
 
     local mainFrame = Instance.new("Frame")
     mainFrame.Name = "MainFrame"
-    mainFrame.Size = UDim2.new(0, 440, 0, 540)
-    mainFrame.Position = UDim2.new(0.5, -220, 0.5, -270)
+    mainFrame.Size = UDim2.new(0, 600, 0, 240)
+    mainFrame.Position = UDim2.new(0.5, -300, 0.5, -120)
     mainFrame.BackgroundColor3 = Color3.fromRGB(12, 10, 26)
     mainFrame.BackgroundTransparency = 0.1
     mainFrame.BorderSizePixel = 2
@@ -98,51 +99,94 @@ local function createGUI()
     uiGradient.Parent = gradientFrame
 
     local titleFrame = Instance.new("Frame")
-    titleFrame.Size = UDim2.new(1, 0, 0, 70)
+    titleFrame.Size = UDim2.new(0, 140, 1, 0)
     titleFrame.Position = UDim2.new(0, 0, 0, 0)
     titleFrame.BackgroundTransparency = 1
     titleFrame.Parent = mainFrame
 
     local titleLabel = Instance.new("TextLabel")
-    titleLabel.Size = UDim2.new(1, 0, 1, 0)
+    titleLabel.Size = UDim2.new(1, 0, 0.5, 0)
+    titleLabel.Position = UDim2.new(0, 10, 0, 10)
     titleLabel.Text = "EBANAT HUB V2"
     titleLabel.TextColor3 = Color3.fromRGB(180, 140, 255)
     titleLabel.BackgroundTransparency = 1
     titleLabel.Font = Enum.Font.GothamBold
     titleLabel.TextScaled = true
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
     titleLabel.TextStrokeTransparency = 0.2
     titleLabel.TextStrokeColor3 = Color3.fromRGB(120, 0, 255)
     titleLabel.Parent = titleFrame
 
-    local glow = Instance.new("ImageLabel")
-    glow.Size = UDim2.new(1.3, 0, 1.8, 0)
-    glow.Position = UDim2.new(-0.15, 0, -0.4, 0)
-    glow.BackgroundTransparency = 1
-    glow.Image = "rbxassetid://1316044015"
-    glow.ImageColor3 = Color3.fromRGB(180, 80, 255)
-    glow.ImageTransparency = 0.8
-    glow.Parent = titleLabel
+    local statusLabel = Instance.new("TextLabel")
+    statusLabel.Size = UDim2.new(1, 0, 0.4, 0)
+    statusLabel.Position = UDim2.new(0, 10, 0.55, 0)
+    statusLabel.Text = "MURDER MYSTERY 2"
+    statusLabel.TextColor3 = Color3.fromRGB(150, 150, 200)
+    statusLabel.BackgroundTransparency = 1
+    statusLabel.Font = Enum.Font.Gotham
+    statusLabel.TextScaled = true
+    statusLabel.TextXAlignment = Enum.TextXAlignment.Left
+    statusLabel.Parent = titleFrame
 
-    local tweenInfo = TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
-    tweenService:Create(glow, tweenInfo, {ImageTransparency = 0.4}):Play()
+    local controlFrame = Instance.new("Frame")
+    controlFrame.Size = UDim2.new(0, 80, 0, 34)
+    controlFrame.Position = UDim2.new(1, -90, 0, 10)
+    controlFrame.BackgroundTransparency = 1
+    controlFrame.Parent = mainFrame
+
+    local minimizeBtn = Instance.new("TextButton")
+    minimizeBtn.Size = UDim2.new(0, 34, 0, 34)
+    minimizeBtn.Position = UDim2.new(0, 0, 0, 0)
+    minimizeBtn.BackgroundTransparency = 1
+    minimizeBtn.Text = "—"
+    minimizeBtn.TextColor3 = Color3.fromRGB(200, 200, 255)
+    minimizeBtn.TextScaled = true
+    minimizeBtn.Font = Enum.Font.GothamBold
+    minimizeBtn.BorderSizePixel = 0
+    minimizeBtn.Parent = controlFrame
+
+    minimizeBtn.MouseEnter:Connect(function()
+        tweenService:Create(minimizeBtn, TweenInfo.new(0.15), {TextColor3 = Color3.fromRGB(255, 255, 255)}):Play()
+    end)
+    minimizeBtn.MouseLeave:Connect(function()
+        tweenService:Create(minimizeBtn, TweenInfo.new(0.15), {TextColor3 = Color3.fromRGB(200, 200, 255)}):Play()
+    end)
+
+    minimizeBtn.MouseButton1Click:Connect(function()
+        state.isMinimized = not state.isMinimized
+        local targetSize = state.isMinimized and UDim2.new(0, 600, 0, 45) or UDim2.new(0, 600, 0, 240)
+        tweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {Size = targetSize}):Play()
+        for _, child in ipairs(mainFrame:GetChildren()) do
+            if child ~= titleFrame and child ~= shadow and child ~= gradientFrame and child ~= controlFrame and child ~= closeBtn and child ~= minimizeBtn then
+                child.Visible = not state.isMinimized
+            end
+        end
+    end)
 
     local closeBtn = Instance.new("TextButton")
     closeBtn.Size = UDim2.new(0, 34, 0, 34)
-    closeBtn.Position = UDim2.new(1, -44, 0, 18)
+    closeBtn.Position = UDim2.new(1, -34, 0, 0)
     closeBtn.BackgroundTransparency = 1
     closeBtn.Text = "✕"
     closeBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
     closeBtn.TextScaled = true
     closeBtn.Font = Enum.Font.GothamBold
     closeBtn.BorderSizePixel = 0
-    closeBtn.Parent = mainFrame
+    closeBtn.Parent = controlFrame
+
+    closeBtn.MouseEnter:Connect(function()
+        tweenService:Create(closeBtn, TweenInfo.new(0.15), {TextColor3 = Color3.fromRGB(255, 50, 50)}):Play()
+    end)
+    closeBtn.MouseLeave:Connect(function()
+        tweenService:Create(closeBtn, TweenInfo.new(0.15), {TextColor3 = Color3.fromRGB(255, 100, 100)}):Play()
+    end)
+
     closeBtn.MouseButton1Click:Connect(function()
-        state.showMenu = not state.showMenu
-        mainFrame.Visible = state.showMenu
+        screenGui:Destroy()
     end)
 
     local dragButton = Instance.new("TextButton")
-    dragButton.Size = UDim2.new(1, -80, 0, 70)
+    dragButton.Size = UDim2.new(0, 140, 1, 0)
     dragButton.Position = UDim2.new(0, 0, 0, 0)
     dragButton.BackgroundTransparency = 1
     dragButton.Text = ""
@@ -173,8 +217,8 @@ local function createGUI()
     end)
 
     local tabFrame = Instance.new("Frame")
-    tabFrame.Size = UDim2.new(1, -30, 0, 44)
-    tabFrame.Position = UDim2.new(0, 15, 0, 78)
+    tabFrame.Size = UDim2.new(0, 440, 0, 36)
+    tabFrame.Position = UDim2.new(0, 155, 0, 10)
     tabFrame.BackgroundTransparency = 1
     tabFrame.Parent = mainFrame
 
@@ -186,21 +230,53 @@ local function createGUI()
 
     local currentCategory = 1
     local categoryButtons = {}
+
+    for i, cat in ipairs(categories) do
+        local tabBtn = Instance.new("TextButton")
+        tabBtn.Size = UDim2.new(0.333, -4, 1, 0)
+        tabBtn.Position = UDim2.new((i-1)*0.333, 2, 0, 0)
+        tabBtn.Text = cat.name
+        tabBtn.BackgroundColor3 = (i == currentCategory) and cat.color or Color3.fromRGB(35, 30, 55)
+        tabBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        tabBtn.TextScaled = true
+        tabBtn.Font = Enum.Font.GothamBold
+        tabBtn.BorderSizePixel = 0
+        tabBtn.BackgroundTransparency = (i == currentCategory) and 0.2 or 0.4
+        tabBtn.Parent = tabFrame
+
+        local tabCorner = Instance.new("UICorner")
+        tabCorner.CornerRadius = UDim.new(0, 8)
+        tabCorner.Parent = tabBtn
+
+        tabBtn.MouseButton1Click:Connect(function()
+            currentCategory = i
+            for j, btn in ipairs(categoryButtons) do
+                btn.BackgroundColor3 = (j == i) and categories[j].color or Color3.fromRGB(35, 30, 55)
+                btn.BackgroundTransparency = (j == i) and 0.2 or 0.4
+            end
+            updateButtons()
+        end)
+
+        categoryButtons[i] = tabBtn
+    end
+
     local scrollFrame = Instance.new("ScrollingFrame")
-    scrollFrame.Size = UDim2.new(1, -30, 1, -140)
-    scrollFrame.Position = UDim2.new(0, 15, 0, 128)
+    scrollFrame.Size = UDim2.new(0, 430, 0, 140)
+    scrollFrame.Position = UDim2.new(0, 155, 0, 55)
     scrollFrame.BackgroundTransparency = 1
     scrollFrame.BorderSizePixel = 0
     scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 600)
-    scrollFrame.ScrollBarThickness = 5
+    scrollFrame.ScrollBarThickness = 4
     scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(150, 80, 255)
     scrollFrame.ScrollBarImageTransparency = 0.4
     scrollFrame.Parent = mainFrame
 
-    local listLayout = Instance.new("UIListLayout")
-    listLayout.Padding = UDim.new(0, 10)
-    listLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    listLayout.Parent = scrollFrame
+    local gridLayout = Instance.new("UIGridLayout")
+    gridLayout.CellSize = UDim2.new(0, 130, 0, 42)
+    gridLayout.CellPadding = UDim2.new(0, 8, 0, 8)
+    gridLayout.FillDirection = Enum.FillDirection.Horizontal
+    gridLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    gridLayout.Parent = scrollFrame
 
     local allButtons = {
         {cat = 1, name = "💰 Auto-Farm", key = "farmMode"},
@@ -224,42 +300,13 @@ local function createGUI()
         end
     end
 
-    for i, cat in ipairs(categories) do
-        local tabBtn = Instance.new("TextButton")
-        tabBtn.Size = UDim2.new(0.333, -4, 1, 0)
-        tabBtn.Position = UDim2.new((i-1)*0.333, 2, 0, 0)
-        tabBtn.Text = cat.name
-        tabBtn.BackgroundColor3 = (i == currentCategory) and cat.color or Color3.fromRGB(35, 30, 55)
-        tabBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        tabBtn.TextScaled = true
-        tabBtn.Font = Enum.Font.GothamBold
-        tabBtn.BorderSizePixel = 0
-        tabBtn.BackgroundTransparency = (i == currentCategory) and 0.2 or 0.4
-        tabBtn.Parent = tabFrame
-
-        local tabCorner = Instance.new("UICorner")
-        tabCorner.CornerRadius = UDim.new(0, 10)
-        tabCorner.Parent = tabBtn
-
-        tabBtn.MouseButton1Click:Connect(function()
-            currentCategory = i
-            for j, btn in ipairs(categoryButtons) do
-                btn.BackgroundColor3 = (j == i) and categories[j].color or Color3.fromRGB(35, 30, 55)
-                btn.BackgroundTransparency = (j == i) and 0.2 or 0.4
-            end
-            updateButtons()
-        end)
-
-        categoryButtons[i] = tabBtn
-    end
-
     for _, btnData in ipairs(allButtons) do
         local btn = Instance.new("TextButton")
-        btn.Size = UDim2.new(1, 0, 0, 48)
+        btn.Size = UDim2.new(0, 130, 0, 42)
         btn.BackgroundColor3 = Color3.fromRGB(30, 25, 50)
         btn.Text = btnData.name
         btn.TextColor3 = Color3.fromRGB(240, 240, 255)
-        btn.TextSize = 18
+        btn.TextSize = 13
         btn.Font = Enum.Font.GothamSemibold
         btn.BorderSizePixel = 0
         btn.BackgroundTransparency = 0.25
@@ -267,7 +314,7 @@ local function createGUI()
         btn:SetAttribute("Category", btnData.cat)
 
         local btnCorner = Instance.new("UICorner")
-        btnCorner.CornerRadius = UDim.new(0, 12)
+        btnCorner.CornerRadius = UDim.new(0, 10)
         btnCorner.Parent = btn
 
         btn.MouseEnter:Connect(function()
@@ -278,8 +325,8 @@ local function createGUI()
         end)
 
         local indicator = Instance.new("Frame")
-        indicator.Size = UDim2.new(0, 18, 0, 18)
-        indicator.Position = UDim2.new(1, -34, 0.5, -9)
+        indicator.Size = UDim2.new(0, 14, 0, 14)
+        indicator.Position = UDim2.new(1, -22, 0.5, -7)
         indicator.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
         indicator.BackgroundTransparency = 0.3
         indicator.BorderSizePixel = 2
@@ -291,8 +338,8 @@ local function createGUI()
         indicatorCorner.Parent = indicator
 
         local indicatorInner = Instance.new("Frame")
-        indicatorInner.Size = UDim2.new(0, 10, 0, 10)
-        indicatorInner.Position = UDim2.new(0.5, -5, 0.5, -5)
+        indicatorInner.Size = UDim2.new(0, 8, 0, 8)
+        indicatorInner.Position = UDim2.new(0.5, -4, 0.5, -4)
         indicatorInner.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
         indicatorInner.BackgroundTransparency = 0.8
         indicatorInner.BorderSizePixel = 0
@@ -316,11 +363,11 @@ local function createGUI()
     end
 
     local killBtn = Instance.new("TextButton")
-    killBtn.Size = UDim2.new(1, -30, 0, 50)
-    killBtn.Position = UDim2.new(0, 15, 0, 475)
+    killBtn.Size = UDim2.new(0, 50, 0, 34)
+    killBtn.Position = UDim2.new(1, -60, 0, 195)
     killBtn.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
     killBtn.BackgroundTransparency = 0.15
-    killBtn.Text = "💀 УНИЧТОЖИТЬ ВСЁ (KILL ALL)"
+    killBtn.Text = "💀"
     killBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
     killBtn.TextScaled = true
     killBtn.Font = Enum.Font.GothamBold
@@ -329,7 +376,7 @@ local function createGUI()
     killBtn.Parent = mainFrame
 
     local killCorner = Instance.new("UICorner")
-    killCorner.CornerRadius = UDim.new(0, 12)
+    killCorner.CornerRadius = UDim.new(0, 10)
     killCorner.Parent = killBtn
 
     killBtn.MouseEnter:Connect(function()
@@ -345,6 +392,16 @@ local function createGUI()
         killBtn.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
         game:Shutdown()
     end)
+
+    local killLabel = Instance.new("TextLabel")
+    killLabel.Size = UDim2.new(0, 50, 0, 16)
+    killLabel.Position = UDim2.new(1, -60, 0, 232)
+    killLabel.Text = "KILL ALL"
+    killLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
+    killLabel.BackgroundTransparency = 1
+    killLabel.Font = Enum.Font.Gotham
+    killLabel.TextScaled = true
+    killLabel.Parent = mainFrame
 
     wait(0.1)
     updateButtons()
