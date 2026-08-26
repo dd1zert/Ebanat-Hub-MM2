@@ -99,14 +99,14 @@ local function createGUI()
     uiGradient.Parent = gradientFrame
 
     local titleFrame = Instance.new("Frame")
-    titleFrame.Size = UDim2.new(0, 140, 1, 0)
+    titleFrame.Size = UDim2.new(0, 200, 1, 0)
     titleFrame.Position = UDim2.new(0, 0, 0, 0)
     titleFrame.BackgroundTransparency = 1
     titleFrame.Parent = mainFrame
 
     local titleLabel = Instance.new("TextLabel")
-    titleLabel.Size = UDim2.new(1, 0, 0.5, 0)
-    titleLabel.Position = UDim2.new(0, 10, 0, 10)
+    titleLabel.Size = UDim2.new(0, 200, 1, 0)
+    titleLabel.Position = UDim2.new(0, 10, 0, 0)
     titleLabel.Text = "EBANAT HUB V2"
     titleLabel.TextColor3 = Color3.fromRGB(180, 140, 255)
     titleLabel.BackgroundTransparency = 1
@@ -117,20 +117,9 @@ local function createGUI()
     titleLabel.TextStrokeColor3 = Color3.fromRGB(120, 0, 255)
     titleLabel.Parent = titleFrame
 
-    local statusLabel = Instance.new("TextLabel")
-    statusLabel.Size = UDim2.new(1, 0, 0.4, 0)
-    statusLabel.Position = UDim2.new(0, 10, 0.55, 0)
-    statusLabel.Text = "MURDER MYSTERY 2"
-    statusLabel.TextColor3 = Color3.fromRGB(150, 150, 200)
-    statusLabel.BackgroundTransparency = 1
-    statusLabel.Font = Enum.Font.Gotham
-    statusLabel.TextScaled = true
-    statusLabel.TextXAlignment = Enum.TextXAlignment.Left
-    statusLabel.Parent = titleFrame
-
     local controlFrame = Instance.new("Frame")
     controlFrame.Size = UDim2.new(0, 80, 0, 34)
-    controlFrame.Position = UDim2.new(1, -90, 0, 10)
+    controlFrame.Position = UDim2.new(0, 5, 0, 5)
     controlFrame.BackgroundTransparency = 1
     controlFrame.Parent = mainFrame
 
@@ -156,16 +145,27 @@ local function createGUI()
         state.isMinimized = not state.isMinimized
         local targetSize = state.isMinimized and UDim2.new(0, 600, 0, 45) or UDim2.new(0, 600, 0, 240)
         tweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {Size = targetSize}):Play()
+        
+        local content = {tabFrame, scrollFrame, killBtn, killLabel}
         for _, child in ipairs(mainFrame:GetChildren()) do
-            if child ~= titleFrame and child ~= shadow and child ~= gradientFrame and child ~= controlFrame and child ~= closeBtn and child ~= minimizeBtn then
-                child.Visible = not state.isMinimized
+            local isContent = false
+            for _, c in ipairs(content) do
+                if child == c then isContent = true break end
             end
+            if child ~= titleFrame and child ~= shadow and child ~= gradientFrame and child ~= controlFrame then
+                if not isContent then
+                    child.Visible = not state.isMinimized
+                end
+            end
+        end
+        if not state.isMinimized then
+            updateButtons()
         end
     end)
 
     local closeBtn = Instance.new("TextButton")
     closeBtn.Size = UDim2.new(0, 34, 0, 34)
-    closeBtn.Position = UDim2.new(1, -34, 0, 0)
+    closeBtn.Position = UDim2.new(0, 40, 0, 0)
     closeBtn.BackgroundTransparency = 1
     closeBtn.Text = "✕"
     closeBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
@@ -186,7 +186,7 @@ local function createGUI()
     end)
 
     local dragButton = Instance.new("TextButton")
-    dragButton.Size = UDim2.new(0, 140, 1, 0)
+    dragButton.Size = UDim2.new(0, 200, 1, 0)
     dragButton.Position = UDim2.new(0, 0, 0, 0)
     dragButton.BackgroundTransparency = 1
     dragButton.Text = ""
