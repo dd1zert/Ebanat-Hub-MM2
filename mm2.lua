@@ -30,7 +30,6 @@ local state = {
     silentAim = false,
     antiBan = false,
     godMode = false,
-    showMenu = true,
     isMinimized = false
 }
 
@@ -98,15 +97,9 @@ local function createGUI()
     uiGradient.Rotation = 45
     uiGradient.Parent = gradientFrame
 
-    local titleFrame = Instance.new("Frame")
-    titleFrame.Size = UDim2.new(0, 200, 1, 0)
-    titleFrame.Position = UDim2.new(0, 0, 0, 0)
-    titleFrame.BackgroundTransparency = 1
-    titleFrame.Parent = mainFrame
-
     local titleLabel = Instance.new("TextLabel")
-    titleLabel.Size = UDim2.new(0, 200, 1, 0)
-    titleLabel.Position = UDim2.new(0, 10, 0, 0)
+    titleLabel.Size = UDim2.new(0, 200, 0, 40)
+    titleLabel.Position = UDim2.new(0, 15, 0, 10)
     titleLabel.Text = "EBANAT HUB V2"
     titleLabel.TextColor3 = Color3.fromRGB(180, 140, 255)
     titleLabel.BackgroundTransparency = 1
@@ -115,78 +108,45 @@ local function createGUI()
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
     titleLabel.TextStrokeTransparency = 0.2
     titleLabel.TextStrokeColor3 = Color3.fromRGB(120, 0, 255)
-    titleLabel.Parent = titleFrame
-
-    local controlFrame = Instance.new("Frame")
-    controlFrame.Size = UDim2.new(0, 80, 0, 34)
-    controlFrame.Position = UDim2.new(0, 5, 0, 5)
-    controlFrame.BackgroundTransparency = 1
-    controlFrame.Parent = mainFrame
-
-    local minimizeBtn = Instance.new("TextButton")
-    minimizeBtn.Size = UDim2.new(0, 34, 0, 34)
-    minimizeBtn.Position = UDim2.new(0, 0, 0, 0)
-    minimizeBtn.BackgroundTransparency = 1
-    minimizeBtn.Text = "—"
-    minimizeBtn.TextColor3 = Color3.fromRGB(200, 200, 255)
-    minimizeBtn.TextScaled = true
-    minimizeBtn.Font = Enum.Font.GothamBold
-    minimizeBtn.BorderSizePixel = 0
-    minimizeBtn.Parent = controlFrame
-
-    minimizeBtn.MouseEnter:Connect(function()
-        tweenService:Create(minimizeBtn, TweenInfo.new(0.15), {TextColor3 = Color3.fromRGB(255, 255, 255)}):Play()
-    end)
-    minimizeBtn.MouseLeave:Connect(function()
-        tweenService:Create(minimizeBtn, TweenInfo.new(0.15), {TextColor3 = Color3.fromRGB(200, 200, 255)}):Play()
-    end)
-
-    minimizeBtn.MouseButton1Click:Connect(function()
-        state.isMinimized = not state.isMinimized
-        local targetSize = state.isMinimized and UDim2.new(0, 600, 0, 45) or UDim2.new(0, 600, 0, 240)
-        tweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {Size = targetSize}):Play()
-        
-        local content = {tabFrame, scrollFrame, killBtn, killLabel}
-        for _, child in ipairs(mainFrame:GetChildren()) do
-            local isContent = false
-            for _, c in ipairs(content) do
-                if child == c then isContent = true break end
-            end
-            if child ~= titleFrame and child ~= shadow and child ~= gradientFrame and child ~= controlFrame then
-                if not isContent then
-                    child.Visible = not state.isMinimized
-                end
-            end
-        end
-        if not state.isMinimized then
-            updateButtons()
-        end
-    end)
+    titleLabel.Parent = mainFrame
 
     local closeBtn = Instance.new("TextButton")
     closeBtn.Size = UDim2.new(0, 34, 0, 34)
-    closeBtn.Position = UDim2.new(0, 40, 0, 0)
+    closeBtn.Position = UDim2.new(1, -44, 0, 10)
     closeBtn.BackgroundTransparency = 1
     closeBtn.Text = "✕"
     closeBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
     closeBtn.TextScaled = true
     closeBtn.Font = Enum.Font.GothamBold
     closeBtn.BorderSizePixel = 0
-    closeBtn.Parent = controlFrame
-
-    closeBtn.MouseEnter:Connect(function()
-        tweenService:Create(closeBtn, TweenInfo.new(0.15), {TextColor3 = Color3.fromRGB(255, 50, 50)}):Play()
-    end)
-    closeBtn.MouseLeave:Connect(function()
-        tweenService:Create(closeBtn, TweenInfo.new(0.15), {TextColor3 = Color3.fromRGB(255, 100, 100)}):Play()
-    end)
-
+    closeBtn.Parent = mainFrame
     closeBtn.MouseButton1Click:Connect(function()
         screenGui:Destroy()
     end)
 
+    local minimizeBtn = Instance.new("TextButton")
+    minimizeBtn.Size = UDim2.new(0, 34, 0, 34)
+    minimizeBtn.Position = UDim2.new(1, -84, 0, 10)
+    minimizeBtn.BackgroundTransparency = 1
+    minimizeBtn.Text = "—"
+    minimizeBtn.TextColor3 = Color3.fromRGB(200, 200, 255)
+    minimizeBtn.TextScaled = true
+    minimizeBtn.Font = Enum.Font.GothamBold
+    minimizeBtn.BorderSizePixel = 0
+    minimizeBtn.Parent = mainFrame
+    minimizeBtn.MouseButton1Click:Connect(function()
+        state.isMinimized = not state.isMinimized
+        local targetSize = state.isMinimized and UDim2.new(0, 600, 0, 45) or UDim2.new(0, 600, 0, 240)
+        tweenService:Create(mainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {Size = targetSize}):Play()
+        for _, child in ipairs(mainFrame:GetChildren()) do
+            if child ~= titleLabel and child ~= closeBtn and child ~= minimizeBtn and child ~= shadow and child ~= gradientFrame then
+                child.Visible = not state.isMinimized
+            end
+        end
+    end)
+
     local dragButton = Instance.new("TextButton")
-    dragButton.Size = UDim2.new(0, 200, 1, 0)
+    dragButton.Size = UDim2.new(0, 200, 0, 40)
     dragButton.Position = UDim2.new(0, 0, 0, 0)
     dragButton.BackgroundTransparency = 1
     dragButton.Text = ""
@@ -217,8 +177,8 @@ local function createGUI()
     end)
 
     local tabFrame = Instance.new("Frame")
-    tabFrame.Size = UDim2.new(0, 440, 0, 36)
-    tabFrame.Position = UDim2.new(0, 155, 0, 10)
+    tabFrame.Size = UDim2.new(0, 430, 0, 36)
+    tabFrame.Position = UDim2.new(0, 15, 0, 55)
     tabFrame.BackgroundTransparency = 1
     tabFrame.Parent = mainFrame
 
@@ -261,8 +221,8 @@ local function createGUI()
     end
 
     local scrollFrame = Instance.new("ScrollingFrame")
-    scrollFrame.Size = UDim2.new(0, 430, 0, 140)
-    scrollFrame.Position = UDim2.new(0, 155, 0, 55)
+    scrollFrame.Size = UDim2.new(0, 430, 0, 135)
+    scrollFrame.Position = UDim2.new(0, 15, 0, 95)
     scrollFrame.BackgroundTransparency = 1
     scrollFrame.BorderSizePixel = 0
     scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 600)
