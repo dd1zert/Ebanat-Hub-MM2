@@ -5,7 +5,6 @@ screenGui.Parent = player:WaitForChild("PlayerGui")
 screenGui.ResetOnSpawn = false
 
 local mainFrame = Instance.new("Frame")
-mainFrame.Name = "MainFrame"
 mainFrame.Size = UDim2.new(0, 600, 0, 210)
 mainFrame.Position = UDim2.new(0.5, -300, 0.5, -105)
 mainFrame.BackgroundColor3 = Color3.fromRGB(12, 10, 26)
@@ -31,9 +30,9 @@ title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = mainFrame
 
 local closeBtn = Instance.new("TextButton")
-closeBtn.Size = UDim2.new(0, 30, 0, 30)
-closeBtn.Position = UDim2.new(1, -40, 0, 10)
-closeBtn.BackgroundTransparency = 1
+closeBtn.Size = UDim2.new(0, 34, 0, 34)
+closeBtn.Position = UDim2.new(1, -44, 0, 8)
+closeBtn.BackgroundColor3 = Color3.fromRGB(40, 30, 60)
 closeBtn.Text = "X"
 closeBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
 closeBtn.TextScaled = true
@@ -44,9 +43,9 @@ closeBtn.MouseButton1Click:Connect(function()
 end)
 
 local minimizeBtn = Instance.new("TextButton")
-minimizeBtn.Size = UDim2.new(0, 30, 0, 30)
-minimizeBtn.Position = UDim2.new(1, -75, 0, 10)
-minimizeBtn.BackgroundTransparency = 1
+minimizeBtn.Size = UDim2.new(0, 34, 0, 34)
+minimizeBtn.Position = UDim2.new(1, -84, 0, 8)
+minimizeBtn.BackgroundColor3 = Color3.fromRGB(40, 30, 60)
 minimizeBtn.Text = "-"
 minimizeBtn.TextColor3 = Color3.fromRGB(200, 200, 255)
 minimizeBtn.TextScaled = true
@@ -225,6 +224,7 @@ for _, btnData in ipairs(allButtons) do
         indicator.BackgroundColor3 = color
         indicatorInner.BackgroundColor3 = color
         indicator.BorderColor3 = states[key] and Color3.fromRGB(0, 255, 120) or Color3.fromRGB(200, 200, 200)
+        btn.BackgroundColor3 = states[key] and Color3.fromRGB(60, 50, 80) or Color3.fromRGB(35, 30, 55)
         print("[Ebanat] " .. btnData.name .. ": " .. (states[key] and "ON" or "OFF"))
     end)
 end
@@ -249,15 +249,5 @@ killCorner.Parent = killBtn
 killBtn.MouseButton1Click:Connect(function()
     game:Shutdown()
 end)
-
-local killLabel = Instance.new("TextLabel")
-killLabel.Size = UDim2.new(0, 50, 0, 14)
-killLabel.Position = UDim2.new(1, -60, 0, 190)
-killLabel.Text = "KILL"
-killLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
-killLabel.BackgroundTransparency = 1
-killLabel.Font = Enum.Font.Gotham
-killLabel.TextScaled = true
-killLabel.Parent = mainFrame
 
 print("[EBANAT HUB V2] Загружен!")
