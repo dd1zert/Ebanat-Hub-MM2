@@ -92,7 +92,7 @@ local function createGUI()
     closeBtn.Size = UDim2.new(0, 34, 0, 34)
     closeBtn.Position = UDim2.new(1, -44, 0, 10)
     closeBtn.BackgroundTransparency = 1
-    closeBtn.Text = "✕"
+    closeBtn.Text = "X"
     closeBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
     closeBtn.TextScaled = true
     closeBtn.Font = Enum.Font.GothamBold
@@ -575,3 +575,6 @@ runService.Heartbeat:Connect(function()
         end
     end)
 end)
+
+print("[EBANAT HUB V2] УСПЕШНО ЗАГРУЖЕН!")
+print("[EBANAT HUB V2] ESP: Убийца 🔴, Шериф 🔵, Невиновный 🟢, Мёртвый ⚪")
