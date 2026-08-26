@@ -176,32 +176,6 @@ for _, btnData in ipairs(allButtons) do
     states[btnData.key] = false
 end
 
-local function executeAction(key)
-    if key == "farm" then
-        print("[Ebanat] Auto-Farm: " .. (states.farm and "ON" or "OFF"))
-    elseif key == "esp" then
-        print("[Ebanat] ESP: " .. (states.esp and "ON" or "OFF"))
-    elseif key == "aimbot" then
-        print("[Ebanat] Aimbot: " .. (states.aimbot and "ON" or "OFF"))
-    elseif key == "fly" then
-        print("[Ebanat] Fly: " .. (states.fly and "ON" or "OFF"))
-    elseif key == "speed" then
-        print("[Ebanat] Speed Hack: " .. (states.speed and "ON" or "OFF"))
-    elseif key == "jump" then
-        print("[Ebanat] Jump Power: " .. (states.jump and "ON" or "OFF"))
-    elseif key == "noclip" then
-        print("[Ebanat] No-Clip: " .. (states.noclip and "ON" or "OFF"))
-    elseif key == "god" then
-        print("[Ebanat] God Mode: " .. (states.god and "ON" or "OFF"))
-    elseif key == "collect" then
-        print("[Ebanat] Auto-Collect: " .. (states.collect and "ON" or "OFF"))
-    elseif key == "hop" then
-        print("[Ebanat] Auto-Server-Hop: " .. (states.hop and "ON" or "OFF"))
-    elseif key == "antiban" then
-        print("[Ebanat] Anti-Ban: " .. (states.antiban and "ON" or "OFF"))
-    end
-end
-
 for _, btnData in ipairs(allButtons) do
     local contentFrame = contentFrames[btnData.cat]
     local btn = Instance.new("TextButton")
@@ -251,7 +225,7 @@ for _, btnData in ipairs(allButtons) do
         indicator.BackgroundColor3 = color
         indicatorInner.BackgroundColor3 = color
         indicator.BorderColor3 = states[key] and Color3.fromRGB(0, 255, 120) or Color3.fromRGB(200, 200, 200)
-        executeAction(key)
+        print("[Ebanat] " .. btnData.name .. ": " .. (states[key] and "ON" or "OFF"))
     end)
 end
 
