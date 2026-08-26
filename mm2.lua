@@ -81,7 +81,7 @@ local function getSheriff()
     return nil
 end
 
-local function killTarget(target, isMurderer)
+local function killTarget(target)
     if not target or not target.Character then return false end
     local char = player.Character
     if not char then return false end
@@ -435,26 +435,12 @@ local function createGUI()
         if key == "killMurderer" then
             local target = getMurderer()
             if target then
-                local success = killTarget(target, true)
-                if success then
-                    print("[EBANAT] Мардер уничтожен!")
-                else
-                    print("[EBANAT] Не удалось убить мардера!")
-                end
-            else
-                print("[EBANAT] Мардер не найден или уже мёртв!")
+                killTarget(target)
             end
         elseif key == "killSheriff" then
             local target = getSheriff()
             if target then
-                local success = killTarget(target, false)
-                if success then
-                    print("[EBANAT] Шериф уничтожен!")
-                else
-                    print("[EBANAT] Не удалось убить шерифа!")
-                end
-            else
-                print("[EBANAT] Шериф не найден или уже мёртв!")
+                killTarget(target)
             end
         end
     end
@@ -463,13 +449,14 @@ local function createGUI()
         local contentFrame = contentFrames[btnData.cat]
         local btn = Instance.new("TextButton")
         btn.Size = UDim2.new(0, 130, 0, 42)
-        btn.BackgroundColor3 = (btnData.key == "killMurderer" or btnData.key == "killSheriff") and Color3.fromRGB(180, 0, 0) or Color3.fromRGB(30, 25, 50)
+        local isKillBtn = btnData.key == "killMurderer" or btnData.key == "killSheriff"
+        btn.BackgroundColor3 = isKillBtn and Color3.fromRGB(180, 0, 0) or Color3.fromRGB(30, 25, 50)
         btn.Text = btnData.name
         btn.TextColor3 = Color3.fromRGB(240, 240, 255)
         btn.TextSize = 13
         btn.Font = Enum.Font.GothamSemibold
         btn.BorderSizePixel = 0
-        btn.BackgroundTransparency = (btnData.key == "killMurderer" or btnData.key == "killSheriff") and 0.3 or 0.25
+        btn.BackgroundTransparency = isKillBtn and 0.3 or 0.25
         btn.Parent = contentFrame
         btn.ZIndex = 3
 
@@ -481,7 +468,7 @@ local function createGUI()
             tweenService:Create(btn, TweenInfo.new(0.15), {BackgroundTransparency = 0.05}):Play()
         end)
         btn.MouseLeave:Connect(function()
-            tweenService:Create(btn, TweenInfo.new(0.15), {BackgroundTransparency = (btnData.key == "killMurderer" or btnData.key == "killSheriff") and 0.3 or 0.25}):Play()
+            tweenService:Create(btn, TweenInfo.new(0.15), {BackgroundTransparency = isKillBtn and 0.3 or 0.25}):Play()
         end)
 
         local indicator = Instance.new("Frame")
@@ -763,4 +750,56 @@ local function aimbot()
         if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
             local camera = workspace.CurrentCamera
             local targetPos = target.Character.HumanoidRootPart.Position
-            camera.CFrame = CFrame.lookAt(camera
+            camera.CFrame = CFrame.lookAt(camera.CFrame.Position, targetPos)
+            local tool = player.Character and player.Character:FindFirstChildOfClass("Tool")
+            if tool and tool:FindFirstChild("Handle") then
+                tool:Activate()
+                wait(0.05)
+                tool:Deactivate()
+            end
+        end
+    end)
+end
+
+local function autoServerHop()
+    pcall(function() teleportService:Teleport(game.PlaceId, player) end)
+end
+
+local function noClip()
+    pcall(function()
+        if state.noClip and player.Character then
+            for _, part in ipairs(player.Character:GetDescendants()) do
+                if part:IsA("BasePart") then part.CanCollide = false end
+            end
+        elseif player.Character then
+            for _, part in ipairs(player.Character:GetDescendants()) do
+                if part:IsA("BasePart") then part.CanCollide = true end
+            end
+        end
+    end)
+end
+
+local function godMode()
+    pcall(function()
+        if state.godMode and player.Character then
+            local humanoid = player.Character:FindFirstChild("Humanoid")
+            if humanoid then
+                humanoid.MaxHealth = math.huge
+                humanoid.Health = math.huge
+                humanoid.BreakJointsOnDeath = false
+            end
+        elseif player.Character then
+            local humanoid = player.Character:FindFirstChild("Humanoid")
+            if humanoid then
+                humanoid.MaxHealth = 100
+                humanoid.Health = 100
+                humanoid.BreakJointsOnDeath = true
+            end
+        end
+    end)
+end
+
+local function antiBan() end
+
+local hopTimer = 0
+runService.Heartbeat:Connect(function()
