@@ -17,7 +17,6 @@ local ESP_COLORS = {
     SHERIFF = Color3.fromRGB(0, 100, 255),
     INNOCENT = Color3.fromRGB(0, 255, 100),
     DEAD = Color3.fromRGB(200, 200, 200),
-    WAITING = Color3.fromRGB(150, 150, 150),
 }
 
 local state = {
@@ -76,19 +75,6 @@ local function isPlayerAlive(plr)
     local humanoid = plr.Character:FindFirstChild("Humanoid")
     if not humanoid then return false end
     return humanoid.Health > 0
-end
-
-local function isRoundActive()
-    local hasMurderer = false
-    local hasSheriff = false
-    for _, plr in ipairs(players:GetPlayers()) do
-        if plr ~= player then
-            local role = getPlayerRole(plr)
-            if role == "MURDERER" then hasMurderer = true end
-            if role == "SHERIFF" then hasSheriff = true end
-        end
-    end
-    return hasMurderer and hasSheriff
 end
 
 local function createGUI()
@@ -401,25 +387,20 @@ local function esp()
             end
             return
         end
-        local roundActive = isRoundActive()
         for _, plr in ipairs(players:GetPlayers()) do
             if plr ~= player and plr.Character then
                 local highlight = plr.Character:FindFirstChild("ROCKET_ESP")
                 local isAlive = isPlayerAlive(plr)
                 local role = getPlayerRole(plr)
-                local color = ESP_COLORS.WAITING
+                local color = ESP_COLORS.INNOCENT
                 if not isAlive then
                     color = ESP_COLORS.DEAD
-                elseif not roundActive then
-                    color = ESP_COLORS.WAITING
+                elseif role == "MURDERER" then
+                    color = ESP_COLORS.MURDERER
+                elseif role == "SHERIFF" then
+                    color = ESP_COLORS.SHERIFF
                 else
-                    if role == "MURDERER" then
-                        color = ESP_COLORS.MURDERER
-                    elseif role == "SHERIFF" then
-                        color = ESP_COLORS.SHERIFF
-                    else
-                        color = ESP_COLORS.INNOCENT
-                    end
+                    color = ESP_COLORS.INNOCENT
                 end
                 if not highlight then
                     highlight = Instance.new("Highlight")
@@ -430,7 +411,7 @@ local function esp()
                 end
                 highlight.OutlineColor = color
                 highlight.FillColor = color
-                if role == "MURDERER" and isAlive and roundActive then
+                if role == "MURDERER" and isAlive then
                     highlight.FillTransparency = 0.4
                     highlight.OutlineTransparency = 0
                 else
